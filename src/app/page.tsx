@@ -59,7 +59,7 @@ export default function Home() {
             <VariableFontCursorProximity
               key={i}
               label={text}
-              className="text-4xl md:text-6xl lg:text-8xl leading-none font-bold text-red-500 font-spaceGrotesk"
+              className="text-4xl md:text-6xl lg:text-8xl leading-none font-bold text-white font-spaceGrotesk"
               fromFontVariationSettings="'wght' 100, 'slnt' 0"
               toFontVariationSettings="'wght' 900, 'slnt' -15"
               radius={300}
@@ -76,7 +76,7 @@ export default function Home() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <h2 className="text-red-400 mb-4 text-sm uppercase tracking-wider">
+            <h2 className="text-white mb-4 text-sm uppercase tracking-wider">
               Prompt Suggestions
             </h2>
             {prompts.map((prompt, index) => (
@@ -89,7 +89,7 @@ export default function Home() {
                   ease: "easeOut",
                   delay: index * 0.08 + 0.6,
                 }}
-                className="text-sm cursor-pointer hover:text-red-400 transition-colors duration-200"
+                className="text-sm cursor-pointer hover:text-white/80 transition-colors duration-200"
                 onClick={() => handlePromptClick(prompt)}
               >
                 <ScrambleHover
@@ -111,7 +111,7 @@ export default function Home() {
 
         {/* Status text with more intense glitch effect */}
         <motion.div
-          className="fixed bottom-4 left-4 text-sm text-red-400/60 font-jetbrainsMono"
+          className="fixed bottom-4 left-4 text-sm text-white/60 font-jetbrainsMono"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 1.5 }}

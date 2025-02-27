@@ -20,7 +20,7 @@ export default function ScrambleHover({
 }: ScrambleHoverProps) {
   const [isHovering, setIsHovering] = useState(false)
   const [displayText, setDisplayText] = useState(text)
-  const chars = useOriginalCharsOnly ? text.split("") : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()".split("")
+  const chars = useOriginalCharsOnly ? text.split("") : "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()".split("")
 
   useEffect(() => {
     let iteration = 0

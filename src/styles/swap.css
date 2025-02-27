@@ -12,8 +12,8 @@
 }
 
 .swap-input {
-  background-color: rgba(26, 26, 26, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 0.5rem;
   color: #FFFFFF;
   font-family: "IBM Plex Mono", monospace;
@@ -23,10 +23,10 @@
 }
 
 .swap-button {
-  background-color: #2172E5;
+  background-color: #FFFFFF;
   border: none;
   border-radius: 0.5rem;
-  color: #FFFFFF;
+  color: #000000;
   cursor: pointer;
   font-family: "IBM Plex Mono", monospace;
   font-weight: 600;
@@ -37,19 +37,19 @@
 }
 
 .swap-button:hover {
-  background-color: #1966D6;
+  background-color: #E0E0E0;
 }
 
 .swap-button:disabled {
-  background-color: rgba(33, 114, 229, 0.5);
+  background-color: rgba(255, 255, 255, 0.5);
   cursor: not-allowed;
 }
 
 .token-select {
   display: flex;
   align-items: center;
-  background-color: rgba(26, 26, 26, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 0.5rem;
   padding: 0.5rem;
   cursor: pointer;
@@ -57,7 +57,7 @@
 }
 
 .token-select:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .token-icon {

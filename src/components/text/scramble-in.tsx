@@ -29,7 +29,7 @@ const ScrambleIn = forwardRef<ScrambleInHandle, ScrambleInProps>(
     const prevTextRef = useRef<string>("")
 
     const getRandomChar = () => {
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?"
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?"
       return chars[Math.floor(Math.random() * chars.length)]
     }
 

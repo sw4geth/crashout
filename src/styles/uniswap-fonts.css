@@ -1,0 +1,14 @@
+/* Import Inter fonts */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/variable.css';
+
+/* Font family definitions for the Uniswap widget */
+.swap-widget-container {
+  --widget-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.swap-widget-container * {
+  font-family: var(--widget-font-family) !important;
+}

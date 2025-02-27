@@ -108,7 +108,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="h-[70vh] w-full max-w-3xl mx-auto flex flex-col gap-4 p-4 bg-black/50 backdrop-blur-sm border border-red-500/20 rounded-lg">
+    <div className="h-[70vh] w-full max-w-3xl mx-auto flex flex-col gap-4 p-4 bg-black/50 backdrop-blur-sm border border-white/20 rounded-lg">
       <div className="flex-1 overflow-auto space-y-4 p-4">
         {messages.map((message, index) => (
           <motion.div
@@ -119,7 +119,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
           >
             <div
               className={`max-w-[80%] p-3 rounded-lg ${
-                message.role === "user" ? "bg-red-500/20 text-white" : "bg-white/10 text-green-400"
+                message.role === "user" ? "bg-black/50 text-white" : "bg-white/10 text-white"
               }`}
             >
               {message.content}
@@ -130,13 +130,13 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex items-center space-x-2 text-red-400"
+            className="flex items-center space-x-2 text-white"
           >
             <div className="animate-pulse">Processing</div>
             <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: "100ms" }}></div>
-              <div className="w-2 h-2 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: "200ms" }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "100ms" }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "200ms" }}></div>
             </div>
           </motion.div>
         )}
@@ -146,7 +146,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
             animate={{ opacity: 1 }}
             className="flex justify-start"
           >
-            <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-green-400">
+            <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white">
               <ScrambleIn
                 ref={scrambleRef}
                 text={currentResponse}
@@ -169,12 +169,12 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 p-2 bg-black/50 border border-red-500/20 rounded-lg text-green-400 focus:outline-none focus:border-red-500/50"
+            className="flex-1 p-2 bg-black/50 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/50"
             placeholder="Enter your query..."
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+            className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
           >
             Send
           </button>
