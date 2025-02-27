@@ -76,6 +76,15 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
         role: "assistant",
         content: "I've opened the Uniswap swap widget for you. You can now trade between ETH, mETH, and fBTC. Just connect your wallet to get started!"
       }])
+      
+      // Add a highlight message after a delay
+      setTimeout(() => {
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: "TRANSACTION HIGHLIGHT: ETH → METH 1:38.25 RATE"
+        }])
+      }, 1500)
+      
       return
     }
 
@@ -119,10 +128,16 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
           >
             <div
               className={`max-w-[80%] p-3 rounded-lg ${
-                message.role === "user" ? "bg-black/50 text-white" : "bg-white/10 text-white"
+                message.role === "user" 
+                  ? "bg-black/50 text-white" 
+                  : message.content.includes("TRANSACTION HIGHLIGHT")
+                    ? "highlight" 
+                    : "bg-white/10 text-white"
               }`}
             >
-              {message.content}
+              <span className={message.content.includes("TRANSACTION HIGHLIGHT") ? "highlight-text font-bold" : ""}>
+                {message.content}
+              </span>
             </div>
           </motion.div>
         ))}
@@ -174,9 +189,9 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
+            className="px-4 py-2 bg-white text-black font-bold rounded-lg hover:bg-white/90 transition-colors"
           >
-            Send
+            SEND
           </button>
         </form>
       )}

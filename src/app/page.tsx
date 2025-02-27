@@ -53,18 +53,19 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Header with cursor proximity effect */}
+        {/* Header with cursor proximity effect and highlight */}
         <div className="mb-12 flex flex-col items-start justify-center gap-4">
           {headerTexts.map((text, i) => (
-            <VariableFontCursorProximity
-              key={i}
-              label={text}
-              className="text-4xl md:text-6xl lg:text-8xl leading-none font-bold text-white font-spaceGrotesk"
-              fromFontVariationSettings="'wght' 100, 'slnt' 0"
-              toFontVariationSettings="'wght' 900, 'slnt' -15"
-              radius={300}
-              containerRef={containerRef}
-            />
+            <div key={i} className={i === 1 ? "highlight" : ""}>
+              <VariableFontCursorProximity
+                label={text}
+                className={`text-4xl md:text-6xl lg:text-8xl leading-none font-bold ${i === 1 ? "highlight-text" : "text-white"} font-spaceGrotesk`}
+                fromFontVariationSettings="'wght' 100, 'slnt' 0"
+                toFontVariationSettings="'wght' 900, 'slnt' -15"
+                radius={300}
+                containerRef={containerRef}
+              />
+            </div>
           ))}
         </div>
 
@@ -89,7 +90,7 @@ export default function Home() {
                   ease: "easeOut",
                   delay: index * 0.08 + 0.6,
                 }}
-                className="text-sm cursor-pointer hover:text-white/80 transition-colors duration-200"
+                className={`text-sm cursor-pointer hover:text-white/80 transition-colors duration-200 ${index % 3 === 0 ? "highlight" : ""}`}
                 onClick={() => handlePromptClick(prompt)}
               >
                 <ScrambleHover
@@ -97,7 +98,7 @@ export default function Home() {
                   scrambleSpeed={60}
                   maxIterations={10}
                   useOriginalCharsOnly={true}
-                  className="font-jetbrainsMono"
+                  className={`font-jetbrainsMono ${index % 3 === 0 ? "highlight-text" : ""}`}
                 />
               </motion.div>
             ))}
