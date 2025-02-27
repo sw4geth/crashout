@@ -16,51 +16,27 @@ function Connector({ web3Connector }: { web3Connector: Web3Connector }) {
   }, [connector, isActive])
 
   return (
-    <div className="connector">
-      <label>{getConnectorName(connector)}</label>
-      <button onClick={onClick} className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">
-        {isActive ? 'Disconnect' : 'Connect'}
-      </button>
-      <svg className={`status ${isActive ? 'active' : ''}`} viewBox="0 0 2 2" width="10" height="10">
-        <circle cx={1} cy={1} r={1} />
-      </svg>
-      <style jsx>{`
-        .connector {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-        .status {
-          width: 10px;
-          height: 10px;
-          fill: #f44336;
-        }
-        .status.active {
-          fill: #4caf50;
-        }
-      `}</style>
+    <div className="flex items-center justify-between mb-3 p-3 bg-black/70 border border-white/20 rounded-md">
+      <label className="text-white font-mono">{getConnectorName(connector)}</label>
+      <div className="flex items-center">
+        <button 
+          onClick={onClick}
+          className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded text-white text-sm mr-2 transition-colors font-mono"
+        >
+          {isActive ? 'Disconnect' : 'Connect'}
+        </button>
+        <div className={`w-3 h-3 rounded-full ${isActive ? 'bg-green-400' : 'bg-red-400'}`} />
+      </div>
     </div>
   )
 }
 
 export default function Web3Connectors() {
   return (
-    <div className="connectors">
+    <div className="space-y-2">
       {connectors.map((web3Connector, index) => (
         <Connector key={index} web3Connector={web3Connector} />
       ))}
-      <style jsx>{`
-        .connectors {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          padding: 12px;
-          background: rgba(0, 0, 0, 0.4);
-          border-radius: 12px;
-          margin-bottom: 16px;
-        }
-      `}</style>
     </div>
   )
 }

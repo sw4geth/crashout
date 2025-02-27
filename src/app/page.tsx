@@ -7,10 +7,16 @@ import ChatInterface from "@/components/chat/ChatInterface"
 import GlitchText from "@/components/text/glitch-text"
 import VariableFontCursorProximity from "@/components/text/variable-font-cursor-proximity"
 import PixelTrail from "@/components/background/pixel-trail"
+import SwapWidget from "@/components/swap/SwapWidget"
+import { useActiveProvider } from "@/connectors"
 
 export default function Home() {
   const [selectedPrompt, setSelectedPrompt] = useState<string | undefined>(undefined)
+  const [showSwapMobile, setShowSwapMobile] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Get web3 provider for the SwapWidget
+  const provider = useActiveProvider()
 
   const headerTexts = [
     "HYPERREAL",
@@ -38,6 +44,16 @@ export default function Home() {
 
   const handlePromptClick = (prompt: string) => {
     setSelectedPrompt(prompt)
+    // Show mobile swap widget if it's a swap-related prompt
+    if (prompt.toLowerCase().includes("swap") || 
+        prompt.toLowerCase().includes("trade") || 
+        prompt.toLowerCase().includes("exchange")) {
+      setShowSwapMobile(true)
+    }
+  }
+
+  const toggleSwapMobile = () => {
+    setShowSwapMobile(!showSwapMobile)
   }
 
   return (
@@ -49,6 +65,16 @@ export default function Home() {
           fadeDuration={500}
           pixelClassName="bg-white"
         />
+      </div>
+
+      {/* Mobile Swap Toggle Button */}
+      <div className="fixed top-4 right-4 z-40 lg:hidden">
+        <button 
+          onClick={toggleSwapMobile}
+          className="bg-white text-black font-bold py-2 px-4 rounded-full shadow-lg"
+        >
+          {showSwapMobile ? "CHAT" : "SWAP"}
+        </button>
       </div>
 
       {/* Content */}
@@ -70,7 +96,7 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* Prompt suggestions */}
+          {/* Column 1: Prompt suggestions */}
           <motion.div
             className="lg:w-64 space-y-2 font-mono font-jetbrainsMono"
             initial={{ opacity: 0, x: -20 }}
@@ -104,10 +130,27 @@ export default function Home() {
             ))}
           </motion.div>
 
-          {/* Chat Interface */}
-          <div className="flex-1">
+          {/* Column 2: Chat Interface (hidden on mobile when swap is shown) */}
+          <div className={`flex-1 ${showSwapMobile ? 'hidden lg:block' : 'block'}`}>
             <ChatInterface initialPrompt={selectedPrompt} />
           </div>
+
+          {/* Column 3: Uniswap Widget (shown on desktop always, shown on mobile conditionally) */}
+          <motion.div
+            className={`lg:w-96 ${showSwapMobile ? 'block' : 'hidden lg:block'}`}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            <h2 className="text-white mb-4 text-sm uppercase tracking-wider font-mono">
+              <span className="highlight">
+                <span className="highlight-text">LIVE</span>
+              </span> SWAP TERMINAL
+            </h2>
+            <div className="bg-black/50 backdrop-blur-sm border border-white/20 p-4 rounded-lg">
+              <SwapWidget provider={provider as any} />
+            </div>
+          </motion.div>
         </div>
 
         {/* Status text with more intense glitch effect */}

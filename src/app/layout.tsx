@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google"
+import { IBM_Plex_Mono, Space_Grotesk, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
+import FontLoader from "@/components/FontLoader"
+import Web3Provider from "@/components/Web3Provider"
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -11,6 +13,11 @@ const ibmPlexMono = IBM_Plex_Mono({
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
 })
 
 export const metadata: Metadata = {
@@ -25,8 +32,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${ibmPlexMono.variable} ${spaceGrotesk.variable} font-mono bg-black text-white`}>
-        {children}
+      <body className={`${ibmPlexMono.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-mono bg-black text-white`}>
+        <FontLoader />
+        <Web3Provider>
+          {children}
+        </Web3Provider>
       </body>
     </html>
   )

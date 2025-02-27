@@ -6,6 +6,7 @@ import { ethers } from "ethers"
 import ScrambleIn, { ScrambleInHandle } from "@/components/text/scramble-in"
 import SwapInterface from "./SwapInterface"
 import { generateChatResponse } from "@/lib/openai"
+import { useActiveProvider } from "@/connectors"
 
 interface Message {
   role: "user" | "assistant"
@@ -16,11 +17,6 @@ interface ChatInterfaceProps {
   initialPrompt?: string
 }
 
-// Initialize provider
-const provider = new ethers.providers.JsonRpcProvider(
-  "https://eth-mainnet.g.alchemy.com/v2/SNEOR8G_USDK3K_Ak29fC0ZWu_E58-7W"
-)
-
 export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
@@ -29,6 +25,11 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
   const [showSwap, setShowSwap] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrambleRef = useRef<ScrambleInHandle>(null)
+  
+  // Get the web3 provider
+  const provider = useActiveProvider() || new ethers.providers.JsonRpcProvider(
+    "https://eth-mainnet.g.alchemy.com/v2/SNEOR8G_USDK3K_Ak29fC0ZWu_E58-7W"
+  )
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -74,7 +75,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       setShowSwap(true)
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: "I've opened the Uniswap swap widget for you. You can now trade between ETH, mETH, and fBTC. Just connect your wallet to get started!"
+        content: "I've opened the Uniswap swap widget for you. You can now trade between ETH, mETH, and other tokens. Just connect your wallet to get started!"
       }])
       
       // Add a highlight message after a delay
@@ -92,16 +93,26 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       setIsLoading(true)
       setCurrentResponse("")
 
-      const response = await generateChatResponse(content)
-      let fullResponse = ""
+      // If OpenAI integration is not available, use a fallback response
+      try {
+        const response = await generateChatResponse(content)
+        let fullResponse = ""
 
-      for await (const chunk of response) {
-        const content = chunk.choices[0]?.delta?.content || ""
-        fullResponse += content
-        setCurrentResponse((prev) => prev + content)
+        for await (const chunk of response) {
+          const content = chunk.choices[0]?.delta?.content || ""
+          fullResponse += content
+          setCurrentResponse((prev) => prev + content)
+        }
+
+        setMessages((prev) => [...prev, { role: "assistant", content: fullResponse }])
+      } catch (e) {
+        console.error("OpenAI error:", e)
+        setMessages((prev) => [...prev, { 
+          role: "assistant", 
+          content: "I'm experiencing some technical difficulties. Would you like to try using the swap interface instead?" 
+        }])
       }
-
-      setMessages((prev) => [...prev, { role: "assistant", content: fullResponse }])
+      
       setInput("")
       setCurrentResponse("")
     } catch (error) {
@@ -177,7 +188,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       </div>
 
       {showSwap ? (
-        <SwapInterface provider={provider} />
+        <SwapInterface provider={provider as any} />
       ) : (
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input

@@ -20,7 +20,7 @@ export default function Web3Provider({ children }: Web3ProviderProps) {
   }
 
   return (
-    <Web3ReactProvider connectors={connectors}>
+    <Web3ReactProvider connectors={connectors.map(([connector]) => [connector.connector, connector.hooks])}>
       {children}
     </Web3ReactProvider>
   )
