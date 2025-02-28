@@ -1,5 +1,22 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+![Project Screenshot](/public/Screenshot%202025-02-28%20at%204.48.51%20PM.png)
+
+## Active Development Branches
+
+- **feature-story-nft-component**
+  - Last updated: 3 hours ago
+  - Status: 3 commits behind, 2 commits ahead
+  - Features: NFT component implementation for story protocol
+
+- **feature-swaprouter**
+  - Status: it just works
+  - Features: Swap router integration
+
+- **feature-wormhole-integration**
+  - Status: cooking
+  - Features: bridge to chadlana
+
 ## Getting Started
 
 First, run the development server:
