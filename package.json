@@ -9,16 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.66.11",
+    "@wagmi/connectors": "^5.7.8",
+    "@wagmi/core": "^2.16.5",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "ethers": "^5.7.2",
+    "next": "15.2.0",
+    "nft.storage": "^7.2.0",
+    "process": "^0.11.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.2.0"
+    "react-dropzone": "^14.3.8",
+    "stream-browserify": "^3.0.0",
+    "viem": "^2.23.5",
+    "wagmi": "^2.14.12"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
+    "string-replace-loader": "^3.1.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
