@@ -18,7 +18,7 @@ const ScrambleIn = forwardRef<ScrambleInHandle, ScrambleInProps>(
     {
       text,
       scrambleSpeed = 50,
-      scrambledLetterCount = 5,
+      scrambledLetterCount = 25,
       className,
     },
     ref
