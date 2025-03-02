@@ -24,6 +24,12 @@ const provider = new ethers.providers.JsonRpcProvider(
   "https://eth-mainnet.g.alchemy.com/v2/SNEOR8G_USDK3K_Ak29fC0ZWu_E58-7W"
 )
 
+const videos = [
+  "/videos/output (7).mp4",
+  "/videos/output (8).mp4",
+  "/videos/output (9).mp4"
+]
+
 export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
@@ -33,6 +39,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
   const [showVideoAndMint, setShowVideoAndMint] = useState<string | null>(null)
   const [showBridge, setShowBridge] = useState(false)
   const [showChart, setShowChart] = useState(false)
+  const [currentVideo, setCurrentVideo] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrambleRef = useRef<ScrambleInHandle>(null)
 
@@ -49,6 +56,13 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       handleSubmitWithContent(initialPrompt)
     }
   }, [initialPrompt])
+
+  useEffect(() => {
+    if (showVideoAndMint) {
+      const randomVideo = videos[Math.floor(Math.random() * videos.length)]
+      setCurrentVideo(randomVideo)
+    }
+  }, [showVideoAndMint])
 
   const isSwapPrompt = (content: string) => {
     const lowerContent = content.toLowerCase()
@@ -337,7 +351,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                           times: [0, 0.2, 0.7, 1],
                           ease: "easeOut"
                         }}
-                        src="/output.mp4" 
+                        src={currentVideo}
                         className="max-w-full h-auto rounded transform"
                         style={{
                           WebkitFilter: "url(#noise)",
