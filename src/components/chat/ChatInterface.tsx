@@ -7,6 +7,7 @@ import ScrambleIn, { ScrambleInHandle } from "@/components/text/scramble-in"
 import DummyUniswapSwap from "./DummyUniswapSwap"
 import StoryProtocolMint from "./StoryProtocolMint"
 import WormholeBridge from "./WormholeBridge"
+import GeckoChart from "../chart/GeckoChart"
 import { generateChatResponse } from "@/lib/openai"
 
 interface Message {
@@ -31,6 +32,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
   const [showSwap, setShowSwap] = useState(false)
   const [showVideoAndMint, setShowVideoAndMint] = useState<string | null>(null)
   const [showBridge, setShowBridge] = useState(false)
+  const [showChart, setShowChart] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrambleRef = useRef<ScrambleInHandle>(null)
 
@@ -40,7 +42,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, currentResponse, showSwap, showVideoAndMint, showBridge])
+  }, [messages, currentResponse, showSwap, showVideoAndMint, showBridge, showChart])
 
   useEffect(() => {
     if (initialPrompt) {
@@ -94,13 +96,14 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
     setShowSwap(false)
     setShowVideoAndMint(null)
     setShowBridge(false)
+    setShowChart(false)
 
     // Check for swap prompt
     if (isSwapPrompt(content)) {
       setShowSwap(true)
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: "Here's the swap interface prepopulated with MNT to USDC!"
+        content: "sell while you still can"
       }])
       return
     }
@@ -110,7 +113,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       setShowVideoAndMint(content)
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Here's your generated image and minting UI!" }
+        { role: "assistant", content: "here's your slop master" }
       ])
       return
     }
@@ -120,7 +123,17 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       setShowBridge(true)
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Here's the Wormhole Token Bridge to move mETH to Solana!" }
+        { role: "assistant", content: "finna bridge" }
+      ])
+      return
+    }
+
+    // Check for crashout prompt
+    if (content.toLowerCase().includes("crashout")) {
+      setShowChart(true)
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "time to crashout" }
       ])
       return
     }
@@ -177,6 +190,12 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
             className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
           >
             bridge meth to solana
+          </button>
+          <button
+            onClick={() => handleSubmitWithContent("crashout")}
+            className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
+          >
+            crashout
           </button>
         </div>
       </div>
@@ -253,7 +272,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               </motion.div>
             )}
             
-            {/* Video and Mint Componentß */}
+            {/* Video and Mint Component */}
             {showVideoAndMint && (
               <>
                 <motion.div
@@ -369,6 +388,19 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               >
                 <div className="max-w-[80%]">
                   <WormholeBridge fromToken="mETH" toChain="Solana" />
+                </div>
+              </motion.div>
+            )}
+            
+            {/* Chart Component */}
+            {showChart && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+              >
+                <div className="w-[90%]">
+                  <GeckoChart />
                 </div>
               </motion.div>
             )}

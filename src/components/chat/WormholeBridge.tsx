@@ -13,7 +13,7 @@ interface Chain {
 const CHAINS: { [key: string]: Chain } = {
   ethereum: {
     name: "Ethereum",
-    symbol: "ETH",
+    symbol: "mETH",
     logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
   },
   solana: {

@@ -67,7 +67,7 @@ export default function HeroSection({ onScrollToMainUI }: HeroSectionProps) {
           className="px-8 py-3 bg-white text-black font-bold text-lg"
           onClick={onScrollToMainUI}
         >
-          Enter the void
+          crashout technology
         </motion.button>
       </div>
 
