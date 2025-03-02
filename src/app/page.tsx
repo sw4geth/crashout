@@ -14,7 +14,7 @@ export default function Home() {
 
   const headerTexts = [
     "HYPERREAL",
-    "DIMENSIONAL",
+    "CRASHOUT",
     "QUANTUM",
     "TRANSCENDENT"
   ]

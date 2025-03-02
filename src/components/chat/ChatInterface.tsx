@@ -155,164 +155,247 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
     handleSubmitWithContent(input)
   }
 
-  // Prompt suggestions
-  const suggestions = [
-    "swap mnt to usdc",
-    "generate and mint image",
-    "bridge meth to solana"
-  ]
-
   return (
-    <div className="h-[70vh] w-full max-w-3xl mx-auto flex flex-col gap-4 p-4 bg-black/50 backdrop-blur-sm border border-white/20 rounded-lg">
-      <div className="flex-1 flex gap-4">
-        {/* Suggestion column */}
-        <div className="w-1/4">
-          <div className="bg-black/50 border border-white/20 rounded-lg p-2 flex flex-col gap-2">
-            {suggestions.map((suggestion, index) => (
-              <div
-                key={index}
-                className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded cursor-pointer transition-colors text-sm"
-                onClick={() => setInput(suggestion)}
-              >
-                {suggestion}
-              </div>
-            ))}
-          </div>
+    <div className="h-[calc(100vh-16rem)] flex">
+      {/* Menu column */}
+      <div className="w-1/4 bg-black/50 p-4 space-y-2 border-r border-white/20">
+        <div className="space-y-2">
+          <button
+            onClick={() => handleSubmitWithContent("swap mnt to usdc")}
+            className="w-full p-2 text-left text-white hover:bg-white/10 rounded transition-colors"
+          >
+            swap mnt to usdc
+          </button>
+          <button
+            onClick={() => handleSubmitWithContent("generate and mint image")}
+            className="w-full p-2 text-left text-white hover:bg-white/10 rounded transition-colors"
+          >
+            generate and mint image
+          </button>
+          <button
+            onClick={() => handleSubmitWithContent("bridge meth to solana")}
+            className="w-full p-2 text-left text-white hover:bg-white/10 rounded transition-colors"
+          >
+            bridge meth to solana
+          </button>
         </div>
-        
-        {/* Chat column */}
-        <div className="w-3/4 overflow-auto space-y-4 p-4">
-          {messages.map((message, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  message.role === "user" 
-                    ? "bg-black/50 text-white" 
-                    : message.content.includes("TRANSACTION HIGHLIGHT")
-                      ? "highlight" 
-                      : "bg-white/10 text-white"
-                }`}
-              >
-                <span className={message.content.includes("TRANSACTION HIGHLIGHT") ? "highlight-text font-bold" : ""}>
-                  {message.content}
-                </span>
-              </div>
-            </motion.div>
-          ))}
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center space-x-2 text-white"
-            >
-              <div className="animate-pulse">Processing</div>
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "100ms" }}></div>
-                <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "200ms" }}></div>
-              </div>
-            </motion.div>
-          )}
-          {currentResponse && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-start"
-            >
-              <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white">
-                <ScrambleIn
-                  ref={scrambleRef}
-                  text={currentResponse}
-                  scrambleSpeed={25}
-                  scrambledLetterCount={5}
-                  className="font-mono"
-                  autoStart={true}
-                />
-              </div>
-            </motion.div>
-          )}
-          
-          {/* Swap Component */}
-          {showSwap && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
-            >
-              <div className="max-w-[80%]">
-                <DummyUniswapSwap />
-              </div>
-            </motion.div>
-          )}
-          
-          {/* Video and Mint Component */}
-          {showVideoAndMint && (
-            <>
+      </div>
+      
+      {/* Chat column */}
+      <div className="w-3/4 flex flex-col">
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="space-y-4 p-4">
+            {messages.map((message, index) => (
               <motion.div
+                key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[80%] p-3 rounded-lg break-words whitespace-pre-wrap overflow-hidden ${
+                    message.role === "user" 
+                      ? "bg-black/50 text-white" 
+                      : message.content.includes("TRANSACTION HIGHLIGHT")
+                        ? "highlight" 
+                        : "bg-white/10 text-white"
+                  }`}
+                >
+                  <span className={message.content.includes("TRANSACTION HIGHLIGHT") ? "highlight-text font-bold" : ""}>
+                    {message.content}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center space-x-2 text-white"
+              >
+                <div className="animate-pulse">Processing</div>
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "100ms" }}></div>
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "200ms" }}></div>
+                </div>
+              </motion.div>
+            )}
+            {currentResponse && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 className="flex justify-start"
               >
                 <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white">
-                  <video 
-                    src="/output.mp4" 
-                    className="max-w-full h-auto rounded"
-                    controls
-                    autoPlay
-                    loop
-                    muted
+                  <ScrambleIn
+                    ref={scrambleRef}
+                    text={currentResponse}
+                    scrambleSpeed={25}
+                    scrambledLetterCount={5}
+                    className="font-mono"
+                    autoStart={true}
                   />
                 </div>
               </motion.div>
+            )}
+            
+            {/* Swap Component */}
+            {showSwap && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex justify-start"
               >
                 <div className="max-w-[80%]">
-                  <StoryProtocolMint content={showVideoAndMint} />
+                  <DummyUniswapSwap />
                 </div>
               </motion.div>
-            </>
-          )}
-          
-          {/* Bridge Component */}
-          {showBridge && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
+            )}
+            
+            {/* Video and Mint Componentß */}
+            {showVideoAndMint && (
+              <>
+                <motion.div
+                  className="flex justify-start relative"
+                >
+                  <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
+                    <motion.div
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 1.2
+                      }}
+                      className="absolute inset-0 flex items-center justify-center bg-black/20"
+                    >
+                      <div className="flex items-center gap-2">
+                        <motion.div 
+                          animate={{ rotate: 360 }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear"
+                          }}
+                          className="w-4 h-4 border-2 border-white/30 border-t-white/90 rounded-full"
+                        />
+                        <motion.span
+                          animate={{
+                            opacity: [1, 0.5, 1]
+                          }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                          className="font-mono text-sm text-white/90"
+                        >
+                          Inferencing slop...
+                        </motion.span>
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: 1.2
+                      }}
+                    >
+                      <motion.video 
+                        initial={{
+                          filter: "opacity(0)"
+                        }}
+                        animate={{
+                          filter: [
+                            "opacity(0)",
+                            "opacity(1) contrast(800%) brightness(150%)",
+                            "opacity(1) contrast(800%) brightness(150%)",
+                            "opacity(1) contrast(100%) brightness(100%)"
+                          ]
+                        }}
+                        transition={{
+                          duration: 2.4,
+                          times: [0, 0.2, 0.7, 1],
+                          ease: "easeOut"
+                        }}
+                        src="/output.mp4" 
+                        className="max-w-full h-auto rounded transform"
+                        style={{
+                          WebkitFilter: "url(#noise)",
+                          filter: "url(#noise)"
+                        }}
+                        controls
+                        autoPlay
+                        loop
+                        muted
+                      />
+                    </motion.div>
+                  </div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.2, duration: 0.3 }}
+                  className="flex justify-start"
+                >
+                  <div className="max-w-[80%]">
+                    <StoryProtocolMint content={showVideoAndMint} />
+                  </div>
+                </motion.div>
+                {/* SVG Filter */}
+                <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+                  <defs>
+                    <filter id="noise">
+                      <feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="4" stitchTiles="stitch" />
+                      <feComponentTransfer>
+                        <feFuncR type="linear" slope="3" intercept="-1" />
+                        <feFuncG type="linear" slope="3" intercept="-1" />
+                        <feFuncB type="linear" slope="3" intercept="-1" />
+                      </feComponentTransfer>
+                      <feComposite operator="in" in2="SourceGraphic" />
+                    </filter>
+                  </defs>
+                </svg>
+              </>
+            )}
+            
+            {/* Bridge Component */}
+            {showBridge && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
+              >
+                <div className="max-w-[80%]">
+                  <WormholeBridge fromToken="mETH" toChain="Solana" />
+                </div>
+              </motion.div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+        
+        <div className="p-4 border-t border-white/20 bg-black/50">
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 bg-black/50 text-white p-2 rounded border border-white/20 focus:outline-none focus:border-white/40"
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-4 py-2 bg-white/10 text-white rounded hover:bg-white/20 transition-colors disabled:opacity-50"
             >
-              <div className="max-w-[80%]">
-                <WormholeBridge fromToken="mETH" toChain="Solana" />
-              </div>
-            </motion.div>
-          )}
-          
-          <div ref={messagesEndRef} />
+              Send
+            </button>
+          </form>
         </div>
       </div>
-
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-1 p-2 bg-black/50 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/50"
-          placeholder="Enter your query (e.g., 'swap mnt to usdc', 'generate and mint image', 'bridge meth to solana')..."
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-white text-black font-bold rounded-lg hover:bg-white/90 transition-colors"
-        >
-          SEND
-        </button>
-      </form>
     </div>
   )
 }

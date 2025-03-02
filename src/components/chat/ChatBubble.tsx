@@ -16,7 +16,7 @@ export default function ChatBubble({ message, role }: ChatBubbleProps) {
       className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}
     >
       <div
-        className={`max-w-[80%] p-3 rounded-lg ${
+        className={`max-w-[80%] p-3 rounded-lg break-words whitespace-pre-wrap ${
           role === "user" ? "bg-black/50 text-white" : "bg-white/10 text-white"
         }`}
       >
