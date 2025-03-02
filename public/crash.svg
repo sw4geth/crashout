@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background (transparent) -->
+  
+  <!-- Chart line (crashing downward) -->
+  <path d="M10 10 L20 15 L30 20 L40 35 L54 54" stroke="#ff3333" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Downward arrow to emphasize the crash -->
+  <path d="M46 38 L54 54 L38 46" stroke="#ff3333" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Subtle background grid lines -->
+  <path d="M10 10 L10 54 L54 54" stroke="#ff3333" stroke-width="2" stroke-opacity="0.3" fill="none"/>
+  <path d="M10 24 L54 24 M10 39 L54 39" stroke="#ff3333" stroke-width="1" stroke-opacity="0.2" fill="none"/>
+  <path d="M25 10 L25 54 M40 10 L40 54" stroke="#ff3333" stroke-width="1" stroke-opacity="0.2" fill="none"/>
+</svg>

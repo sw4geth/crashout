@@ -14,8 +14,11 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: "Crashout Terminal",
-  description: "Cyberpunk-themed Uniswap interface",
+  title: "Crashout",
+  description: "Brutalist Web3 AI Terminal",
+  icons: {
+    icon: "/crash.svg"
+  }
 }
 
 export default function RootLayout({
