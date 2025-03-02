@@ -30,10 +30,10 @@ export default function Home() {
     "ALERT: Hyperspace conduit detected in basement dim sum kitchen",
     "DANGER: Rogue AI colonizing the collective unconscious via food delivery apps",
     "URGENT: Time-traveling street food vendors distributing memetic hazards",
-    // Swap-specific prompts
-    "SWAP: Convert ETH to mETH now",
-    "TRADE: Exchange my ETH for mETH immediately",
-    "EXECUTE: Swap ETH to mETH on Uniswap V3",
+    // Feature-specific prompts
+    "SWAP: swap mnt to usdc now",
+    "GENERATE: generate and mint image for my cyberpunk noodle shop",
+    "BRIDGE: bridge meth to solana network",
   ]
 
   const handlePromptClick = (prompt: string) => {
