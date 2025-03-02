@@ -4,47 +4,32 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import "@/styles/swap.css"
 
-interface Chain {
-  name: string
-  symbol: string
-  logoURI: string
+interface WormholeBridgeProps {
+  fromToken?: string
+  toChain?: string
 }
 
-const CHAINS: { [key: string]: Chain } = {
+const chains = {
   ethereum: {
     name: "Ethereum",
     symbol: "mETH",
-    logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png"
+    logoURI: "/images/meth.jpg"
   },
   solana: {
     name: "Solana",
     symbol: "SOL",
     logoURI: "https://assets.coingecko.com/coins/images/4128/small/solana.png"
-  },
-  arbitrum: {
-    name: "Arbitrum",
-    symbol: "ARB",
-    logoURI: "https://assets.coingecko.com/coins/images/16547/small/arbitrum.png"
   }
 }
 
-interface WormholeBridgeProps {
-  fromToken: string
-  toChain: string
-}
-
-export default function WormholeBridge({ fromToken, toChain }: WormholeBridgeProps) {
-  const [amount, setAmount] = useState("0.1")
-  const [sourceChain, setSourceChain] = useState(CHAINS.ethereum)
-  const [targetChain, setTargetChain] = useState(CHAINS.solana)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+export default function WormholeBridge({ fromToken = "mETH", toChain = "Solana" }: WormholeBridgeProps) {
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleBridge = () => {
-    setLoading(true)
+    setIsLoading(true)
     setTimeout(() => {
-      setLoading(false)
-      setError("")
+      setIsLoading(false)
+      alert("Bridge transaction simulated!")
     }, 2000)
   }
 
@@ -69,17 +54,15 @@ export default function WormholeBridge({ fromToken, toChain }: WormholeBridgePro
           >
             <div className="token-select">
               <img
-                src={sourceChain.logoURI}
-                alt={sourceChain.symbol}
+                src="/images/meth.jpg"
+                alt="mETH"
                 className="token-icon"
               />
-              <span className="token-symbol">{sourceChain.symbol}</span>
+              <span className="token-symbol">{fromToken}</span>
             </div>
 
             <input
               type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
               placeholder="0.0"
               className="swap-input text-xs"
             />
@@ -90,11 +73,11 @@ export default function WormholeBridge({ fromToken, toChain }: WormholeBridgePro
 
             <div className="token-select">
               <img
-                src={targetChain.logoURI}
-                alt={targetChain.symbol}
+                src={chains.solana.logoURI}
+                alt={chains.solana.symbol}
                 className="token-icon"
               />
-              <span className="token-symbol">{targetChain.symbol}</span>
+              <span className="token-symbol">{chains.solana.symbol}</span>
             </div>
 
             <div className="text-xs text-white/60 px-1">
@@ -104,20 +87,10 @@ export default function WormholeBridge({ fromToken, toChain }: WormholeBridgePro
             <button
               className="swap-button text-xs"
               onClick={handleBridge}
-              disabled={loading || !amount}
+              disabled={isLoading}
             >
-              {loading ? "Bridging..." : "Bridge"}
+              {isLoading ? "Bridging..." : "Bridge"}
             </button>
-
-            {error && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-red-500 mt-2 text-xs"
-              >
-                {error}
-              </motion.div>
-            )}
           </motion.div>
         </div>
       </div>
