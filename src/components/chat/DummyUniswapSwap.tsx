@@ -29,8 +29,8 @@ const USDC: TokenWithLogo = {
 }
 
 export default function DummyUniswapSwap() {
-  const [inputAmount, setInputAmount] = useState("1") // Prepopulated with 1 MNT
-  const [outputAmount, setOutputAmount] = useState("1.5") // Dummy output
+  const [inputAmount, setInputAmount] = useState("1.0")
+  const [outputAmount, setOutputAmount] = useState("1,812.47")
   const [inputToken, setInputToken] = useState<TokenWithLogo>(MNT)
   const [outputToken, setOutputToken] = useState<TokenWithLogo>(USDC)
   const [loading, setLoading] = useState(false)
@@ -56,69 +56,84 @@ export default function DummyUniswapSwap() {
   }
 
   return (
-    <motion.div
-      className="swap-container"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="token-select" onClick={() => console.log("Select input token")}>
-        <img
-          src={inputToken.logoURI || "https://via.placeholder.com/24"}
-          alt={inputToken.symbol}
-          className="token-icon"
-          onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
-        />
-        <span className="token-symbol">{inputToken.symbol}</span>
-      </div>
-
-      <input
-        type="number"
-        value={inputAmount}
-        onChange={(e) => setInputAmount(e.target.value)}
-        placeholder="0.0"
-        className="swap-input"
-      />
-
-      <div className="swap-arrow" onClick={switchTokens}>
-        ↓
-      </div>
-
-      <div className="token-select" onClick={() => console.log("Select output token")}>
-        <img
-          src={outputToken.logoURI || "https://via.placeholder.com/24"}
-          alt={outputToken.symbol}
-          className="token-icon"
-          onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
-        />
-        <span className="token-symbol">{outputToken.symbol}</span>
-      </div>
-
-      <input
-        type="number"
-        value={outputAmount}
-        readOnly
-        placeholder="0.0"
-        className="swap-input"
-      />
-
-      <button
-        className="swap-button"
-        onClick={handleSwap}
-        disabled={loading || !inputAmount}
+    <div className="relative w-[240px] h-[400px]">
+      <video
+        className="w-full h-full object-cover"
+        autoPlay
+        loop
+        muted
+        playsInline
       >
-        {loading ? "Loading..." : "Swap"}
-      </button>
+        <source src="/Subway Surfers.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[160px] p-2 bg-black border border-white/20">
+        <div className="swap-container">
+          <motion.div
+            className="swap-container text-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="token-select" onClick={() => console.log("Select input token")}>
+              <img
+                src={inputToken.logoURI || "https://via.placeholder.com/24"}
+                alt={inputToken.symbol}
+                className="token-icon"
+                onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+              />
+              <span className="token-symbol">{inputToken.symbol}</span>
+            </div>
 
-      {error && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-red-500 mt-2"
-        >
-          {error}
-        </motion.div>
-      )}
-    </motion.div>
+            <input
+              type="number"
+              value={inputAmount}
+              onChange={(e) => setInputAmount(e.target.value)}
+              placeholder="0.0"
+              className="swap-input text-xs"
+            />
+
+            <div className="swap-arrow" onClick={switchTokens}>
+              ↓
+            </div>
+
+            <div className="token-select" onClick={() => console.log("Select output token")}>
+              <img
+                src={outputToken.logoURI || "https://via.placeholder.com/24"}
+                alt={outputToken.symbol}
+                className="token-icon"
+                onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+              />
+              <span className="token-symbol">{outputToken.symbol}</span>
+            </div>
+
+            <input
+              type="number"
+              value={outputAmount}
+              readOnly
+              placeholder="0.0"
+              className="swap-input text-xs"
+            />
+
+            <button
+              className="swap-button"
+              onClick={handleSwap}
+              disabled={loading || !inputAmount}
+            >
+              {loading ? "Loading..." : "Swap"}
+            </button>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-red-500 mt-2"
+              >
+                {error}
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
+      </div>
+    </div>
   )
 }

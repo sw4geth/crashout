@@ -162,19 +162,19 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
         <div className="space-y-2">
           <button
             onClick={() => handleSubmitWithContent("swap mnt to usdc")}
-            className="w-full p-2 text-left text-white hover:bg-white/10 rounded transition-colors"
+            className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
           >
             swap mnt to usdc
           </button>
           <button
             onClick={() => handleSubmitWithContent("generate and mint image")}
-            className="w-full p-2 text-left text-white hover:bg-white/10 rounded transition-colors"
+            className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
           >
             generate and mint image
           </button>
           <button
             onClick={() => handleSubmitWithContent("bridge meth to solana")}
-            className="w-full p-2 text-left text-white hover:bg-white/10 rounded transition-colors"
+            className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
           >
             bridge meth to solana
           </button>
@@ -193,7 +193,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg break-words whitespace-pre-wrap overflow-hidden ${
+                  className={`max-w-[80%] p-3 break-words whitespace-pre-wrap overflow-hidden ${
                     message.role === "user" 
                       ? "bg-black/50 text-white" 
                       : message.content.includes("TRANSACTION HIGHLIGHT")
@@ -215,9 +215,9 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               >
                 <div className="animate-pulse">Processing</div>
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "100ms" }}></div>
-                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "200ms" }}></div>
+                  <div className="w-2 h-2 bg-white animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-2 h-2 bg-white animate-bounce" style={{ animationDelay: "100ms" }}></div>
+                  <div className="w-2 h-2 bg-white animate-bounce" style={{ animationDelay: "200ms" }}></div>
                 </div>
               </motion.div>
             )}
@@ -227,7 +227,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 animate={{ opacity: 1 }}
                 className="flex justify-start"
               >
-                <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white">
+                <div className="max-w-[80%] p-3 bg-white/10 text-white">
                   <ScrambleIn
                     ref={scrambleRef}
                     text={currentResponse}
@@ -259,7 +259,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 <motion.div
                   className="flex justify-start relative"
                 >
-                  <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
+                  <div className="max-w-[80%] p-3 bg-white/10 text-white relative overflow-hidden">
                     <motion.div
                       initial={{ opacity: 1 }}
                       animate={{ opacity: 0 }}
@@ -277,7 +277,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                             repeat: Infinity,
                             ease: "linear"
                           }}
-                          className="w-4 h-4 border-2 border-white/30 border-t-white/90 rounded-full"
+                          className="w-4 h-4 border-2 border-white/30 border-t-white/90"
                         />
                         <motion.span
                           animate={{
@@ -320,7 +320,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                           ease: "easeOut"
                         }}
                         src="/output.mp4" 
-                        className="max-w-full h-auto rounded transform"
+                        className="max-w-full h-auto transform"
                         style={{
                           WebkitFilter: "url(#noise)",
                           filter: "url(#noise)"
@@ -384,12 +384,12 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 bg-black/50 text-white p-2 rounded border border-white/20 focus:outline-none focus:border-white/40"
+              className="flex-1 bg-black/50 text-white p-2 focus:outline-none focus:border-white/40"
             />
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-white/10 text-white rounded hover:bg-white/20 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-white/10 text-white hover:bg-white/20 transition-colors disabled:opacity-50"
             >
               Send
             </button>

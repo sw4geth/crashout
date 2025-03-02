@@ -18,7 +18,7 @@ function Connector({ web3Connector }: { web3Connector: Web3Connector }) {
   return (
     <div className="connector">
       <label>{getConnectorName(connector)}</label>
-      <button onClick={onClick} className="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">
+      <button onClick={onClick} className="px-3 py-1 bg-gray-700 hover:bg-gray-600">
         {isActive ? 'Disconnect' : 'Connect'}
       </button>
       <svg className={`status ${isActive ? 'active' : ''}`} viewBox="0 0 2 2" width="10" height="10">

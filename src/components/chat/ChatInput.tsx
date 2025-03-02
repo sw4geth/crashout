@@ -24,13 +24,13 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        className="flex-1 p-2 bg-black/50 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/50"
+        className="flex-1 p-2 bg-black/50 border border-white/20 text-white focus:outline-none focus:border-white/50"
         placeholder="Enter your query..."
         disabled={isLoading}
       />
       <button
         type="submit"
-        className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors disabled:opacity-50"
+        className="px-4 py-2 bg-white/20 text-white hover:bg-white/30 transition-colors disabled:opacity-50"
         disabled={isLoading || !input.trim()}
       >
         Send
