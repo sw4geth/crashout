@@ -70,9 +70,8 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
   const isImageAndMintPrompt = (content: string) => {
     const lowerContent = content.toLowerCase()
     return (
-      lowerContent.includes("generate") &&
-      lowerContent.includes("image") &&
-      (lowerContent.includes("mint") || lowerContent.includes("story protocol"))
+      lowerContent.includes("mint") ||
+      lowerContent.includes("slop")
     )
   }
 
@@ -180,10 +179,10 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
             swap mnt to usdc
           </button>
           <button
-            onClick={() => handleSubmitWithContent("generate and mint image")}
+            onClick={() => handleSubmitWithContent("mint me some slop")}
             className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
           >
-            generate and mint image
+            mint me some slop
           </button>
           <button
             onClick={() => handleSubmitWithContent("bridge meth to solana")}
@@ -278,7 +277,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 <motion.div
                   className="flex justify-start relative"
                 >
-                  <div className="max-w-[80%] p-3 bg-white/10 text-white relative overflow-hidden">
+                  <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
                     <motion.div
                       initial={{ opacity: 1 }}
                       animate={{ opacity: 0 }}
@@ -296,7 +295,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                             repeat: Infinity,
                             ease: "linear"
                           }}
-                          className="w-4 h-4 border-2 border-white/30 border-t-white/90"
+                          className="w-4 h-4 border-2 border-white/30 border-t-white/90 rounded-full"
                         />
                         <motion.span
                           animate={{
@@ -339,7 +338,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                           ease: "easeOut"
                         }}
                         src="/output.mp4" 
-                        className="max-w-full h-auto transform"
+                        className="max-w-full h-auto rounded transform"
                         style={{
                           WebkitFilter: "url(#noise)",
                           filter: "url(#noise)"

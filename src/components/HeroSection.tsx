@@ -1,8 +1,9 @@
 "use client"
 
-import { useRef, useEffect } from "react"
+import { useRef, useState } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import ScrambleHover from "@/components/text/scramble-hover"
+import IntentGallery from "@/components/modal/IntentGallery"
 import "@/styles/hero.css"
 
 interface HeroSectionProps {
@@ -12,6 +13,7 @@ interface HeroSectionProps {
 export default function HeroSection({ onScrollToMainUI }: HeroSectionProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
 
   // Use Framer Motion's useScroll for smooth parallax
   const { scrollYProgress } = useScroll()
@@ -54,10 +56,15 @@ export default function HeroSection({ onScrollToMainUI }: HeroSectionProps) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mb-8"
         >
-          <ScrambleHover
-            text="fuck intents"
-            className="text-2xl font-mono"
-          />
+          <button
+            onClick={() => setIsGalleryOpen(true)}
+            className="text-2xl font-mono hover:text-white/80 transition-colors"
+          >
+            <ScrambleHover
+              text="fuck intents"
+              className="text-2xl font-mono"
+            />
+          </button>
         </motion.div>
 
         <motion.button
@@ -72,6 +79,11 @@ export default function HeroSection({ onScrollToMainUI }: HeroSectionProps) {
       </div>
 
       <div className="gradient-overlay" />
+      
+      <IntentGallery 
+        isOpen={isGalleryOpen} 
+        onClose={() => setIsGalleryOpen(false)} 
+      />
     </div>
   )
 }

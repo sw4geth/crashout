@@ -7,7 +7,7 @@ export default function GeckoChart() {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="w-full h-[85vh] bg-black border border-white/20 overflow-hidden"
+      className="w-full h-[50vh] bg-black border border-white/20 overflow-hidden"
     >
       <iframe 
         height="100%" 
