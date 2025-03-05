@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { ethers } from "ethers"
 import ScrambleIn, { ScrambleInHandle } from "@/components/text/scramble-in"
@@ -27,19 +27,26 @@ const provider = new ethers.providers.JsonRpcProvider(
 const videos = [
   "/videos/output (7).mp4",
   "/videos/output (8).mp4",
-  "/videos/output (9).mp4"
+  "/videos/output (9).mp4",
+  "/videos/output.mp4"
 ]
 
 export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
+  interface VideoMintMessage {
+    id: string;
+    content: string;
+    video: string;
+  }
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [currentResponse, setCurrentResponse] = useState("")
   const [showSwap, setShowSwap] = useState(false)
-  const [showVideoAndMint, setShowVideoAndMint] = useState<string | null>(null)
+  const [videoMintMessages, setVideoMintMessages] = useState<VideoMintMessage[]>([])
   const [showBridge, setShowBridge] = useState(false)
   const [showChart, setShowChart] = useState(false)
-  const [currentVideo, setCurrentVideo] = useState("")
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrambleRef = useRef<ScrambleInHandle>(null)
 
@@ -49,7 +56,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, currentResponse, showSwap, showVideoAndMint, showBridge, showChart])
+  }, [messages, currentResponse, showSwap, videoMintMessages, showBridge, showChart])
 
   useEffect(() => {
     if (initialPrompt) {
@@ -57,12 +64,8 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
     }
   }, [initialPrompt])
 
-  useEffect(() => {
-    if (showVideoAndMint) {
-      const randomVideo = videos[Math.floor(Math.random() * videos.length)]
-      setCurrentVideo(randomVideo)
-    }
-  }, [showVideoAndMint])
+  // We now handle video selection directly in the handleSubmitWithContent function
+  // This ensures a new video is selected each time, even if the same action is triggered
 
   const isSwapPrompt = (content: string) => {
     const lowerContent = content.toLowerCase()
@@ -105,9 +108,8 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
     setMessages((prev) => [...prev, userMessage])
     setInput("")
     
-    // Reset all UI components
+    // Reset UI components except for video mint messages
     setShowSwap(false)
-    setShowVideoAndMint(null)
     setShowBridge(false)
     setShowChart(false)
 
@@ -123,7 +125,20 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
 
     // Check for image and mint prompt
     if (isImageAndMintPrompt(content)) {
-      setShowVideoAndMint(content)
+      // Select a random video
+      const randomVideo = videos[Math.floor(Math.random() * videos.length)]
+      
+      // Create a new video mint message with unique ID
+      const newVideoMintMessage = {
+        id: `mint_${Date.now()}`,
+        content: content,
+        video: randomVideo
+      }
+      
+      // Add to the list of video mint messages
+      setVideoMintMessages(prev => [...prev, newVideoMintMessage])
+      
+      // Add assistant response
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "here's your slop master" }
@@ -285,10 +300,12 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               </motion.div>
             )}
             
-            {/* Video and Mint Component */}
-            {showVideoAndMint && (
-              <>
+            {/* Video and Mint Components */}
+            {videoMintMessages.map((mintMessage) => (
+              <React.Fragment key={mintMessage.id}>
                 <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className="flex justify-start relative"
                 >
                   <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
@@ -334,34 +351,36 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                         delay: 1.2
                       }}
                     >
-                      <motion.video 
-                        initial={{
-                          filter: "opacity(0)"
-                        }}
-                        animate={{
-                          filter: [
-                            "opacity(0)",
-                            "opacity(1) contrast(800%) brightness(150%)",
-                            "opacity(1) contrast(800%) brightness(150%)",
-                            "opacity(1) contrast(100%) brightness(100%)"
-                          ]
-                        }}
-                        transition={{
-                          duration: 2.4,
-                          times: [0, 0.2, 0.7, 1],
-                          ease: "easeOut"
-                        }}
-                        src={currentVideo}
-                        className="max-w-full h-auto rounded transform"
-                        style={{
-                          WebkitFilter: "url(#noise)",
-                          filter: "url(#noise)"
-                        }}
-                        controls
-                        autoPlay
-                        loop
-                        muted
-                      />
+                      {mintMessage.video && (
+                        <motion.video 
+                          initial={{
+                            filter: "opacity(0)"
+                          }}
+                          animate={{
+                            filter: [
+                              "opacity(0)",
+                              "opacity(1) contrast(800%) brightness(150%)",
+                              "opacity(1) contrast(800%) brightness(150%)",
+                              "opacity(1) contrast(100%) brightness(100%)"
+                            ]
+                          }}
+                          transition={{
+                            duration: 2.4,
+                            times: [0, 0.2, 0.7, 1],
+                            ease: "easeOut"
+                          }}
+                          src={mintMessage.video}
+                          className="max-w-full h-auto rounded transform"
+                          style={{
+                            WebkitFilter: "url(#noise)",
+                            filter: "url(#noise)"
+                          }}
+                          controls
+                          autoPlay
+                          loop
+                          muted
+                        />
+                      )}
                     </motion.div>
                   </div>
                 </motion.div>
@@ -372,24 +391,27 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                   className="flex justify-start"
                 >
                   <div className="max-w-[80%]">
-                    <StoryProtocolMint content={showVideoAndMint} />
+                    <StoryProtocolMint content={mintMessage.content} />
                   </div>
                 </motion.div>
-                {/* SVG Filter */}
-                <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-                  <defs>
-                    <filter id="noise">
-                      <feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="4" stitchTiles="stitch" />
-                      <feComponentTransfer>
-                        <feFuncR type="linear" slope="3" intercept="-1" />
-                        <feFuncG type="linear" slope="3" intercept="-1" />
-                        <feFuncB type="linear" slope="3" intercept="-1" />
-                      </feComponentTransfer>
-                      <feComposite operator="in" in2="SourceGraphic" />
-                    </filter>
-                  </defs>
-                </svg>
-              </>
+              </React.Fragment>
+            ))}
+            
+            {/* SVG Filter */}
+            {videoMintMessages.length > 0 && (
+              <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+                <defs>
+                  <filter id="noise">
+                    <feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="4" stitchTiles="stitch" />
+                    <feComponentTransfer>
+                      <feFuncR type="linear" slope="3" intercept="-1" />
+                      <feFuncG type="linear" slope="3" intercept="-1" />
+                      <feFuncB type="linear" slope="3" intercept="-1" />
+                    </feComponentTransfer>
+                    <feComposite operator="in" in2="SourceGraphic" />
+                  </filter>
+                </defs>
+              </svg>
             )}
             
             {/* Bridge Component */}
