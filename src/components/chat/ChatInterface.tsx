@@ -13,6 +13,22 @@ import { generateChatResponse } from "@/lib/openai"
 interface Message {
   role: "user" | "assistant"
   content: string
+  timestamp: number
+}
+
+interface ActionItem {
+  id: string
+  type: 'videoMint' | 'swap' | 'bridge' | 'chart'
+  content: string
+  timestamp: number
+  data?: any // For type-specific data like video URL
+}
+
+interface TimelineItem {
+  id: string
+  type: 'message' | 'action'
+  data: Message | ActionItem
+  timestamp: number
 }
 
 interface ChatInterfaceProps {
@@ -32,21 +48,11 @@ const videos = [
 ]
 
 export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
-  interface VideoMintMessage {
-    id: string;
-    content: string;
-    video: string;
-  }
-
-  const [messages, setMessages] = useState<Message[]>([])
+  // Main timeline state for all interactions
+  const [timeline, setTimeline] = useState<TimelineItem[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [currentResponse, setCurrentResponse] = useState("")
-  const [showSwap, setShowSwap] = useState(false)
-  const [videoMintMessages, setVideoMintMessages] = useState<VideoMintMessage[]>([])
-  const [showBridge, setShowBridge] = useState(false)
-  const [showChart, setShowChart] = useState(false)
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrambleRef = useRef<ScrambleInHandle>(null)
 
@@ -56,7 +62,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, currentResponse, showSwap, videoMintMessages, showBridge, showChart])
+  }, [timeline, currentResponse])
 
   useEffect(() => {
     if (initialPrompt) {
@@ -84,7 +90,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
     return hasSwapCommand && hasTokens
   }
 
-  const isImageAndMintPrompt = (content: string) => {
+  const isVideoMintPrompt = (content: string) => {
     const lowerContent = content.toLowerCase()
     return (
       lowerContent.includes("mint") ||
@@ -100,68 +106,174 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       lowerContent.includes("solana")
     )
   }
+  
+  const isChartPrompt = (content: string) => {
+    const lowerContent = content.toLowerCase()
+    return lowerContent.includes("crashout")
+  }
 
   const handleSubmitWithContent = async (content: string) => {
     if (!content.trim()) return
 
-    const userMessage = { role: "user" as const, content }
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
+    const timestamp = Date.now()
+    const messageId = `msg_${timestamp}`
     
-    // Reset UI components except for video mint messages
-    setShowSwap(false)
-    setShowBridge(false)
-    setShowChart(false)
+    // Add user message to timeline
+    const userMessage: Message = { 
+      role: "user" as const, 
+      content,
+      timestamp 
+    }
+    
+    setTimeline(prev => [...prev, {
+      id: messageId,
+      type: 'message',
+      data: userMessage,
+      timestamp
+    }])
+    
+    setInput("")
 
     // Check for swap prompt
     if (isSwapPrompt(content)) {
-      setShowSwap(true)
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content: "sell while you still can"
-      }])
+      const actionTimestamp = timestamp + 1
+      const actionId = `action_swap_${actionTimestamp}`
+      const responseTimestamp = timestamp + 2
+      const responseId = `msg_${responseTimestamp}`
+      
+      // Add swap action to timeline
+      setTimeline(prev => [
+        ...prev,
+        {
+          id: actionId,
+          type: 'action',
+          data: {
+            id: actionId,
+            type: 'swap',
+            content,
+            timestamp: actionTimestamp
+          },
+          timestamp: actionTimestamp
+        },
+        {
+          id: responseId,
+          type: 'message',
+          data: {
+            role: "assistant",
+            content: "sell while you still can",
+            timestamp: responseTimestamp
+          },
+          timestamp: responseTimestamp
+        }
+      ])
       return
     }
 
-    // Check for image and mint prompt
-    if (isImageAndMintPrompt(content)) {
+    // Check for video mint prompt
+    if (isVideoMintPrompt(content)) {
       // Select a random video
       const randomVideo = videos[Math.floor(Math.random() * videos.length)]
       
-      // Create a new video mint message with unique ID
-      const newVideoMintMessage = {
-        id: `mint_${Date.now()}`,
-        content: content,
-        video: randomVideo
-      }
+      const actionTimestamp = timestamp + 1
+      const actionId = `action_mint_${actionTimestamp}`
+      const responseTimestamp = timestamp + 2
+      const responseId = `msg_${responseTimestamp}`
       
-      // Add to the list of video mint messages
-      setVideoMintMessages(prev => [...prev, newVideoMintMessage])
-      
-      // Add assistant response
-      setMessages((prev) => [
+      // Add video mint action to timeline
+      setTimeline(prev => [
         ...prev,
-        { role: "assistant", content: "here's your slop master" }
+        {
+          id: actionId,
+          type: 'action',
+          data: {
+            id: actionId,
+            type: 'videoMint',
+            content,
+            timestamp: actionTimestamp,
+            data: { video: randomVideo }
+          },
+          timestamp: actionTimestamp
+        },
+        {
+          id: responseId,
+          type: 'message',
+          data: {
+            role: "assistant",
+            content: "here's your slop master",
+            timestamp: responseTimestamp
+          },
+          timestamp: responseTimestamp
+        }
       ])
       return
     }
 
     // Check for bridge prompt
     if (isBridgePrompt(content)) {
-      setShowBridge(true)
-      setMessages((prev) => [
+      const actionTimestamp = timestamp + 1
+      const actionId = `action_bridge_${actionTimestamp}`
+      const responseTimestamp = timestamp + 2
+      const responseId = `msg_${responseTimestamp}`
+      
+      // Add bridge action to timeline
+      setTimeline(prev => [
         ...prev,
-        { role: "assistant", content: "finna bridge" }
+        {
+          id: actionId,
+          type: 'action',
+          data: {
+            id: actionId,
+            type: 'bridge',
+            content,
+            timestamp: actionTimestamp
+          },
+          timestamp: actionTimestamp
+        },
+        {
+          id: responseId,
+          type: 'message',
+          data: {
+            role: "assistant",
+            content: "finna bridge",
+            timestamp: responseTimestamp
+          },
+          timestamp: responseTimestamp
+        }
       ])
       return
     }
 
-    // Check for crashout prompt
-    if (content.toLowerCase().includes("crashout")) {
-      setShowChart(true)
-      setMessages((prev) => [
+    // Check for chart/crashout prompt
+    if (isChartPrompt(content)) {
+      const actionTimestamp = timestamp + 1
+      const actionId = `action_chart_${actionTimestamp}`
+      const responseTimestamp = timestamp + 2
+      const responseId = `msg_${responseTimestamp}`
+      
+      // Add chart action to timeline
+      setTimeline(prev => [
         ...prev,
-        { role: "assistant", content: "time to crashout" }
+        {
+          id: actionId,
+          type: 'action',
+          data: {
+            id: actionId,
+            type: 'chart',
+            content,
+            timestamp: actionTimestamp
+          },
+          timestamp: actionTimestamp
+        },
+        {
+          id: responseId,
+          type: 'message',
+          data: {
+            role: "assistant",
+            content: "time to crashout",
+            timestamp: responseTimestamp
+          },
+          timestamp: responseTimestamp
+        }
       ])
       return
     }
@@ -179,13 +291,41 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
         setCurrentResponse((prev) => prev + content)
       }
 
-      setMessages((prev) => [...prev, { role: "assistant", content: fullResponse }])
+      const responseTimestamp = Date.now()
+      const responseId = `msg_${responseTimestamp}`
+      
+      // Add assistant response to timeline
+      setTimeline(prev => [...prev, {
+        id: responseId,
+        type: 'message',
+        data: {
+          role: "assistant",
+          content: fullResponse,
+          timestamp: responseTimestamp
+        },
+        timestamp: responseTimestamp
+      }])
+      
       setCurrentResponse("")
     } catch (error) {
       console.error("Error:", error)
       // Fallback to dummy response if API fails
       const dummyResponse = "This is a dummy response to your query."
-      setMessages((prev) => [...prev, { role: "assistant", content: dummyResponse }])
+      
+      const responseTimestamp = Date.now()
+      const responseId = `msg_${responseTimestamp}`
+      
+      // Add fallback response to timeline
+      setTimeline(prev => [...prev, {
+        id: responseId,
+        type: 'message',
+        data: {
+          role: "assistant",
+          content: dummyResponse,
+          timestamp: responseTimestamp
+        },
+        timestamp: responseTimestamp
+      }])
     } finally {
       setIsLoading(false)
     }
@@ -232,28 +372,178 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       <div className="w-3/4 flex flex-col">
         <div className="flex-1 overflow-y-auto min-h-0">
           <div className="space-y-4 p-4">
-            {messages.map((message, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[80%] p-3 break-words whitespace-pre-wrap overflow-hidden ${
-                    message.role === "user" 
-                      ? "bg-black/50 text-white" 
-                      : message.content.includes("TRANSACTION HIGHLIGHT")
-                        ? "highlight" 
-                        : "bg-white/10 text-white"
-                  }`}
-                >
-                  <span className={message.content.includes("TRANSACTION HIGHLIGHT") ? "highlight-text font-bold" : ""}>
-                    {message.content}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
+            {/* Render timeline items in chronological order */}
+            {timeline.map((item) => {
+              if (item.type === 'message') {
+                const message = item.data as Message;
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[80%] p-3 break-words whitespace-pre-wrap overflow-hidden ${
+                        message.role === "user" 
+                          ? "bg-black/50 text-white" 
+                          : message.content.includes("TRANSACTION HIGHLIGHT")
+                            ? "highlight" 
+                            : "bg-white/10 text-white"
+                      }`}
+                    >
+                      <span className={message.content.includes("TRANSACTION HIGHLIGHT") ? "highlight-text font-bold" : ""}>
+                        {message.content}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              } else if (item.type === 'action') {
+                const action = item.data as ActionItem;
+                
+                // Render different action types
+                if (action.type === 'videoMint') {
+                  const videoUrl = action.data?.video;
+                  return (
+                    <React.Fragment key={item.id}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex justify-start relative"
+                      >
+                        <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
+                          <motion.div
+                            initial={{ opacity: 1 }}
+                            animate={{ opacity: 0 }}
+                            transition={{
+                              duration: 0.3,
+                              delay: 1.2
+                            }}
+                            className="absolute inset-0 flex items-center justify-center bg-black/20"
+                          >
+                            <div className="flex items-center gap-2">
+                              <motion.div 
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  ease: "linear"
+                                }}
+                                className="w-4 h-4 border-2 border-white/30 border-t-white/90 rounded-full"
+                              />
+                              <motion.span
+                                animate={{
+                                  opacity: [1, 0.5, 1]
+                                }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                                className="font-mono text-sm text-white/90"
+                              >
+                                Inferencing slop...
+                              </motion.span>
+                            </div>
+                          </motion.div>
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{
+                              duration: 0.4,
+                              delay: 1.2
+                            }}
+                          >
+                            {videoUrl && (
+                              <motion.video 
+                                initial={{
+                                  filter: "opacity(0)"
+                                }}
+                                animate={{
+                                  filter: [
+                                    "opacity(0)",
+                                    "opacity(1) contrast(800%) brightness(150%)",
+                                    "opacity(1) contrast(800%) brightness(150%)",
+                                    "opacity(1) contrast(100%) brightness(100%)"
+                                  ]
+                                }}
+                                transition={{
+                                  duration: 2.4,
+                                  times: [0, 0.2, 0.7, 1],
+                                  ease: "easeOut"
+                                }}
+                                src={videoUrl}
+                                className="max-w-full h-auto rounded transform"
+                                style={{
+                                  WebkitFilter: "url(#noise)",
+                                  filter: "url(#noise)"
+                                }}
+                                controls
+                                autoPlay
+                                loop
+                                muted
+                              />
+                            )}
+                          </motion.div>
+                        </div>
+                      </motion.div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.2, duration: 0.3 }}
+                        className="flex justify-start"
+                      >
+                        <div className="max-w-[80%]">
+                          <StoryProtocolMint content={action.content} />
+                        </div>
+                      </motion.div>
+                    </React.Fragment>
+                  );
+                } else if (action.type === 'swap') {
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex justify-start"
+                    >
+                      <div className="max-w-[80%]">
+                        <DummyUniswapSwap />
+                      </div>
+                    </motion.div>
+                  );
+                } else if (action.type === 'bridge') {
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex justify-start"
+                    >
+                      <div className="max-w-[80%]">
+                        <WormholeBridge />
+                      </div>
+                    </motion.div>
+                  );
+                } else if (action.type === 'chart') {
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex justify-start"
+                    >
+                      <div className="max-w-[80%]">
+                        <GeckoChart />
+                      </div>
+                    </motion.div>
+                  );
+                }
+              }
+              return null;
+            })}
+            
+            {/* Loading indicator */}
             {isLoading && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -268,6 +558,8 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 </div>
               </motion.div>
             )}
+            
+            {/* Current response being typed */}
             {currentResponse && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -287,118 +579,11 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               </motion.div>
             )}
             
-            {/* Swap Component */}
-            {showSwap && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-start"
-              >
-                <div className="max-w-[80%]">
-                  <DummyUniswapSwap />
-                </div>
-              </motion.div>
-            )}
+            {/* Reference div for scrolling to bottom */}
+            <div ref={messagesEndRef} />
             
-            {/* Video and Mint Components */}
-            {videoMintMessages.map((mintMessage) => (
-              <React.Fragment key={mintMessage.id}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex justify-start relative"
-                >
-                  <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
-                    <motion.div
-                      initial={{ opacity: 1 }}
-                      animate={{ opacity: 0 }}
-                      transition={{
-                        duration: 0.3,
-                        delay: 1.2
-                      }}
-                      className="absolute inset-0 flex items-center justify-center bg-black/20"
-                    >
-                      <div className="flex items-center gap-2">
-                        <motion.div 
-                          animate={{ rotate: 360 }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                            ease: "linear"
-                          }}
-                          className="w-4 h-4 border-2 border-white/30 border-t-white/90 rounded-full"
-                        />
-                        <motion.span
-                          animate={{
-                            opacity: [1, 0.5, 1]
-                          }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                          className="font-mono text-sm text-white/90"
-                        >
-                          Inferencing slop...
-                        </motion.span>
-                      </div>
-                    </motion.div>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{
-                        duration: 0.4,
-                        delay: 1.2
-                      }}
-                    >
-                      {mintMessage.video && (
-                        <motion.video 
-                          initial={{
-                            filter: "opacity(0)"
-                          }}
-                          animate={{
-                            filter: [
-                              "opacity(0)",
-                              "opacity(1) contrast(800%) brightness(150%)",
-                              "opacity(1) contrast(800%) brightness(150%)",
-                              "opacity(1) contrast(100%) brightness(100%)"
-                            ]
-                          }}
-                          transition={{
-                            duration: 2.4,
-                            times: [0, 0.2, 0.7, 1],
-                            ease: "easeOut"
-                          }}
-                          src={mintMessage.video}
-                          className="max-w-full h-auto rounded transform"
-                          style={{
-                            WebkitFilter: "url(#noise)",
-                            filter: "url(#noise)"
-                          }}
-                          controls
-                          autoPlay
-                          loop
-                          muted
-                        />
-                      )}
-                    </motion.div>
-                  </div>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2, duration: 0.3 }}
-                  className="flex justify-start"
-                >
-                  <div className="max-w-[80%]">
-                    <StoryProtocolMint content={mintMessage.content} />
-                  </div>
-                </motion.div>
-              </React.Fragment>
-            ))}
-            
-            {/* SVG Filter */}
-            {videoMintMessages.length > 0 && (
+            {/* SVG Filter for video effects */}
+            {timeline.some(item => item.type === 'action' && (item.data as ActionItem).type === 'videoMint') && (
               <svg style={{ position: 'absolute', width: 0, height: 0 }}>
                 <defs>
                   <filter id="noise">
@@ -414,33 +599,9 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               </svg>
             )}
             
-            {/* Bridge Component */}
-            {showBridge && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-start"
-              >
-                <div className="max-w-[80%]">
-                  <WormholeBridge fromToken="mETH" toChain="Solana" />
-                </div>
-              </motion.div>
-            )}
+
             
-            {/* Chart Component */}
-            {showChart && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-start"
-              >
-                <div className="w-[90%]">
-                  <GeckoChart />
-                </div>
-              </motion.div>
-            )}
-            
-            <div ref={messagesEndRef} />
+
           </div>
         </div>
         
