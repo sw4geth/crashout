@@ -4,18 +4,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Active Development Branches
 
-- **feature-story-nft-component**
-  - Last updated: 3 hours ago
-  - Status: 3 commits behind, 2 commits ahead
-  - Features: NFT component implementation for story protocol
-
-- **feature-swaprouter**
-  - Status: it just works
-  - Features: Swap router integration
 
 - **feature-wormhole-integration**
   - Status: cooking
   - Features: bridge to chadlana
+
+## Demo Video
+
+https://drive.google.com/file/d/1ZximP7g8CLnmMB-BY5sNs08QcHH4X_oz/view?usp=drive_link
 
 ## Getting Started
 
