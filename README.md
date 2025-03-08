@@ -15,6 +15,24 @@ https://drive.google.com/file/d/1ZximP7g8CLnmMB-BY5sNs08QcHH4X_oz/view?usp=drive
 
 ## Getting Started
 
+### Environment Setup
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+NEXT_PUBLIC_OPENAI_API_KEY=
+ALCHEMY_KEY=
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=
+NEXT_PUBLIC_RPC_PROVIDER_URL=https://aeneid.storyrpc.io
+NEXT_PUBLIC_PINATA_JWT=
+```
+
+You'll need to obtain API keys for:
+- OpenAI API for the chat functionality
+- Alchemy for blockchain interactions
+- WalletConnect Project ID for wallet integration
+- Pinata JWT for IPFS storage
+
 First, run the development server:
 
 ```bash
