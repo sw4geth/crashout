@@ -1,13 +1,13 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a Next.js project bootstrapped with create-next-app.
+
+# CRASHOUTTERMINAL
+Crashout Terminal is a hyper-personalized ChatGPT wrapper that interacts with on-chain protocols, bypassing traditional intent-matching and validation layers (key problems in AI agent execution) to serve familiar UI components directly in chat. It doesn't ask for permission—it just does.
+
+Built as an extension of its creator, Crashout Terminal is idiosyncratic, reflecting the quirks, instincts, and on-chain tendencies of its user. It is not a generic assistant; it is my assistant, a prototype of the future of computing where LLM-powered interfaces replace traditional OS paradigms, adapting seamlessly to individual workflows.
+
+Crashout Terminal swaps via the Uniswap router, bridges through Wormhole, and mints AI slop as IP on Story Protocol. It doesn't just assist—it executes.
 
 ![Project Screenshot](https://raw.githubusercontent.com/sw4geth/crashout/refs/heads/main/public/Screenshot.png)
-
-## Active Development Branches
-
-
-- **feature-wormhole-integration**
-  - Status: cooking
-  - Features: bridge to chadlana
 
 ## Demo Video
 

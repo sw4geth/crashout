@@ -21,8 +21,8 @@ const nextConfig = {
     workerThreads: false,
     cpus: 1
   },
-  // Completely disable the build output for the swap page
-  distDir: process.env.NODE_ENV === 'production' ? '.next-prod' : '.next',
+  // Use the default .next directory for compatibility with Vercel
+  distDir: '.next',
   // Disable the build cache to prevent issues with missing modules
   generateBuildId: async () => {
     return `build-${Date.now()}`;
