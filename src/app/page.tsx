@@ -8,11 +8,20 @@ import GlitchText from "@/components/text/glitch-text"
 import VariableFontCursorProximity from "@/components/text/variable-font-cursor-proximity"
 import PixelTrail from "@/components/background/pixel-trail"
 import HeroSection from "@/components/HeroSection"
+import { modal } from "@/context"
+import { useAccount, useBalance } from "wagmi"
+import { formatEther } from "viem"
 
 export default function Home() {
   const [selectedPrompt, setSelectedPrompt] = useState<string | undefined>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
   const mainUIRef = useRef<HTMLDivElement>(null)
+  
+  const { address, isConnected } = useAccount()
+  const { data: balanceData, isLoading: balanceLoading } = useBalance({
+    address: address as `0x${string}`,
+    chainId: 1, // Mainnet
+  })
 
   const headerTexts = [
     "HYPERREAL",
@@ -116,6 +125,24 @@ export default function Home() {
             {/* Chat Interface */}
             <div className="flex-1">
               <ChatInterface initialPrompt={selectedPrompt} />
+              {/* Wallet Connect Button and Balance */}
+              <div className="mt-8">
+                <button 
+                  onClick={() => modal.open()}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-mono text-sm transition-colors duration-200"
+                >
+                  {isConnected ? 'Connected' : 'Connect Wallet'}
+                </button>
+                {isConnected && balanceData && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-white text-xs mt-2 font-mono"
+                  >
+                    Balance: {balanceLoading ? 'Loading...' : `${formatEther(balanceData.value)} ETH`}
+                  </motion.div>
+                )}
+              </div>
             </div>
           </div>
 

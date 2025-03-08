@@ -15,6 +15,17 @@ interface TokenWithLogo {
   chainId: number;
 }
 
+const IPFS_GATEWAY = 'https://magic.decentralized-content.com/ipfs/';
+
+const normalizeLogoURI = (uri?: string): string => {
+  if (!uri) return 'https://placehold.co/24x24';
+  if (uri.startsWith('ipfs://')) {
+    const cid = uri.replace('ipfs://', '');
+    return `${IPFS_GATEWAY}${cid}`;
+  }
+  return uri;
+};
+
 export default function SwapInterface() {
   const [inputAmount, setInputAmount] = useState('1.0');
   const [outputAmount, setOutputAmount] = useState('');
@@ -28,12 +39,16 @@ export default function SwapInterface() {
   const [inputSearch, setInputSearch] = useState('');
   const [outputSearch, setOutputSearch] = useState('');
 
-  // Fetch Uniswap token list
   useEffect(() => {
     fetch('https://tokens.uniswap.org')
       .then((res) => res.json())
       .then((data) => {
-        const mainnetTokens = data.tokens.filter((token: TokenWithLogo) => token.chainId === 1);
+        const mainnetTokens = data.tokens
+          .filter((token: TokenWithLogo) => token.chainId === 1)
+          .map((token: TokenWithLogo) => ({
+            ...token,
+            logoURI: normalizeLogoURI(token.logoURI),
+          }));
         setTokens(mainnetTokens);
         setInputToken(mainnetTokens.find((t: TokenWithLogo) => t.symbol === 'WETH') || mainnetTokens[0]);
         setOutputToken(mainnetTokens.find((t: TokenWithLogo) => t.symbol === 'USDC') || mainnetTokens[1]);
@@ -44,7 +59,6 @@ export default function SwapInterface() {
       });
   }, []);
 
-  // Filter tokens based on search input
   const filteredInputTokens = useMemo(() => {
     return tokens.filter((token) =>
       token.symbol.toLowerCase().includes(inputSearch.toLowerCase()) ||
@@ -76,6 +90,9 @@ export default function SwapInterface() {
       );
       if (!response.ok) {
         const errorData = await response.json();
+        if (response.status === 404) {
+          throw new Error('No liquidity or route found for this token pair');
+        }
         throw new Error(errorData.error || `Server error: ${response.status}`);
       }
 
@@ -139,15 +156,14 @@ export default function SwapInterface() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Input Token Selector */}
             <div className="token-select" onClick={() => setIsInputTokenMenuOpen(true)}>
               {inputToken ? (
                 <>
                   <img
-                    src={inputToken.logoURI || "https://via.placeholder.com/24"}
+                    src={inputToken.logoURI}
                     alt={inputToken.symbol}
                     className="token-icon"
-                    onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                    onError={(e) => (e.currentTarget.src = 'https://placehold.co/24x24')}
                   />
                   <span className="token-symbol">{inputToken.symbol}</span>
                 </>
@@ -158,17 +174,20 @@ export default function SwapInterface() {
             {isInputTokenMenuOpen && (
               <motion.div
                 className="token-menu"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
                 style={{
                   position: 'absolute',
+                  left: '100%',
+                  top: 0,
                   zIndex: 10,
                   background: '#111',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
-                  maxHeight: '200px',
+                  width: '200px',
+                  maxHeight: '300px',
                   overflowY: 'auto',
-                  width: '100%',
+                  overflowX: 'hidden',
                 }}
               >
                 <input
@@ -186,10 +205,10 @@ export default function SwapInterface() {
                     onClick={() => selectInputToken(token)}
                   >
                     <img
-                      src={token.logoURI || "https://via.placeholder.com/24"}
+                      src={token.logoURI}
                       alt={token.symbol}
                       className="token-icon"
-                      onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                      onError={(e) => (e.currentTarget.src = 'https://placehold.co/24x24')}
                     />
                     <span className="token-symbol">{token.symbol}</span> - {token.name}
                   </div>
@@ -211,15 +230,14 @@ export default function SwapInterface() {
               ↓
             </div>
 
-            {/* Output Token Selector */}
             <div className="token-select" onClick={() => setIsOutputTokenMenuOpen(true)}>
               {outputToken ? (
                 <>
                   <img
-                    src={outputToken.logoURI || "https://via.placeholder.com/24"}
+                    src={outputToken.logoURI}
                     alt={outputToken.symbol}
                     className="token-icon"
-                    onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                    onError={(e) => (e.currentTarget.src = 'https://placehold.co/24x24')}
                   />
                   <span className="token-symbol">{outputToken.symbol}</span>
                 </>
@@ -230,17 +248,20 @@ export default function SwapInterface() {
             {isOutputTokenMenuOpen && (
               <motion.div
                 className="token-menu"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
                 style={{
                   position: 'absolute',
+                  left: '100%',
+                  top: 0,
                   zIndex: 10,
                   background: '#111',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
-                  maxHeight: '200px',
+                  width: '200px',
+                  maxHeight: '300px',
                   overflowY: 'auto',
-                  width: '100%',
+                  overflowX: 'hidden',
                 }}
               >
                 <input
@@ -258,10 +279,10 @@ export default function SwapInterface() {
                     onClick={() => selectOutputToken(token)}
                   >
                     <img
-                      src={token.logoURI || "https://via.placeholder.com/24"}
+                      src={token.logoURI}
                       alt={token.symbol}
                       className="token-icon"
-                      onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                      onError={(e) => (e.currentTarget.src = 'https://placehold.co/24x24')}
                     />
                     <span className="token-symbol">{token.symbol}</span> - {token.name}
                   </div>

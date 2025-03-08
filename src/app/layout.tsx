@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google"
 import "./globals.css"
+import { headers } from "next/headers"
+import ContextProvider from '@/context'
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -26,10 +28,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookies = headers().get('cookie')
+  
   return (
     <html lang="en">
       <body className={`${ibmPlexMono.variable} ${spaceGrotesk.variable} font-mono bg-black text-white`}>
-        {children}
+        <ContextProvider cookies={cookies}>{children}</ContextProvider>
       </body>
     </html>
   )
