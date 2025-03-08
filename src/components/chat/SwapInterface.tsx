@@ -1,7 +1,7 @@
 // src/components/chat/SwapInterface.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ethers } from 'ethers';
 import "@/styles/swap.css";
@@ -23,7 +23,12 @@ export default function SwapInterface() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tokens, setTokens] = useState<TokenWithLogo[]>([]);
+  const [isInputTokenMenuOpen, setIsInputTokenMenuOpen] = useState(false);
+  const [isOutputTokenMenuOpen, setIsOutputTokenMenuOpen] = useState(false);
+  const [inputSearch, setInputSearch] = useState('');
+  const [outputSearch, setOutputSearch] = useState('');
 
+  // Fetch Uniswap token list
   useEffect(() => {
     fetch('https://tokens.uniswap.org')
       .then((res) => res.json())
@@ -38,6 +43,21 @@ export default function SwapInterface() {
         setError('Failed to load token list');
       });
   }, []);
+
+  // Filter tokens based on search input
+  const filteredInputTokens = useMemo(() => {
+    return tokens.filter((token) =>
+      token.symbol.toLowerCase().includes(inputSearch.toLowerCase()) ||
+      token.name.toLowerCase().includes(inputSearch.toLowerCase())
+    );
+  }, [tokens, inputSearch]);
+
+  const filteredOutputTokens = useMemo(() => {
+    return tokens.filter((token) =>
+      token.symbol.toLowerCase().includes(outputSearch.toLowerCase()) ||
+      token.name.toLowerCase().includes(outputSearch.toLowerCase())
+    );
+  }, [tokens, outputSearch]);
 
   const getQuote = async (amount: string, inputTok: TokenWithLogo, outputTok: TokenWithLogo) => {
     if (!amount || Number(amount) <= 0 || !inputTok || !outputTok) {
@@ -88,6 +108,18 @@ export default function SwapInterface() {
     }
   };
 
+  const selectInputToken = (token: TokenWithLogo) => {
+    setInputToken(token);
+    setIsInputTokenMenuOpen(false);
+    setInputSearch('');
+  };
+
+  const selectOutputToken = (token: TokenWithLogo) => {
+    setOutputToken(token);
+    setIsOutputTokenMenuOpen(false);
+    setOutputSearch('');
+  };
+
   return (
     <div className="relative w-[240px] h-[400px]">
       <video
@@ -107,7 +139,8 @@ export default function SwapInterface() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="token-select" onClick={() => console.log("Select input token")}>
+            {/* Input Token Selector */}
+            <div className="token-select" onClick={() => setIsInputTokenMenuOpen(true)}>
               {inputToken ? (
                 <>
                   <img
@@ -122,6 +155,47 @@ export default function SwapInterface() {
                 <span>Loading...</span>
               )}
             </div>
+            {isInputTokenMenuOpen && (
+              <motion.div
+                className="token-menu"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                style={{
+                  position: 'absolute',
+                  zIndex: 10,
+                  background: '#111',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  width: '100%',
+                }}
+              >
+                <input
+                  type="text"
+                  value={inputSearch}
+                  onChange={(e) => setInputSearch(e.target.value)}
+                  placeholder="Search tokens..."
+                  className="swap-input text-xs"
+                  style={{ margin: '0.25rem', width: 'calc(100% - 0.5rem)' }}
+                />
+                {filteredInputTokens.map((token) => (
+                  <div
+                    key={token.address}
+                    className="token-option"
+                    onClick={() => selectInputToken(token)}
+                  >
+                    <img
+                      src={token.logoURI || "https://via.placeholder.com/24"}
+                      alt={token.symbol}
+                      className="token-icon"
+                      onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                    />
+                    <span className="token-symbol">{token.symbol}</span> - {token.name}
+                  </div>
+                ))}
+              </motion.div>
+            )}
 
             <input
               type="number"
@@ -137,7 +211,8 @@ export default function SwapInterface() {
               ↓
             </div>
 
-            <div className="token-select" onClick={() => console.log("Select output token")}>
+            {/* Output Token Selector */}
+            <div className="token-select" onClick={() => setIsOutputTokenMenuOpen(true)}>
               {outputToken ? (
                 <>
                   <img
@@ -152,6 +227,47 @@ export default function SwapInterface() {
                 <span>Loading...</span>
               )}
             </div>
+            {isOutputTokenMenuOpen && (
+              <motion.div
+                className="token-menu"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                style={{
+                  position: 'absolute',
+                  zIndex: 10,
+                  background: '#111',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  width: '100%',
+                }}
+              >
+                <input
+                  type="text"
+                  value={outputSearch}
+                  onChange={(e) => setOutputSearch(e.target.value)}
+                  placeholder="Search tokens..."
+                  className="swap-input text-xs"
+                  style={{ margin: '0.25rem', width: 'calc(100% - 0.5rem)' }}
+                />
+                {filteredOutputTokens.map((token) => (
+                  <div
+                    key={token.address}
+                    className="token-option"
+                    onClick={() => selectOutputToken(token)}
+                  >
+                    <img
+                      src={token.logoURI || "https://via.placeholder.com/24"}
+                      alt={token.symbol}
+                      className="token-icon"
+                      onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                    />
+                    <span className="token-symbol">{token.symbol}</span> - {token.name}
+                  </div>
+                ))}
+              </motion.div>
+            )}
 
             <input
               type="text"

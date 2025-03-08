@@ -1,3 +1,4 @@
+/* src/styles/swap.css */
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 @import "@fontsource/ibm-plex-mono/600.css";
@@ -79,4 +80,23 @@
 
 .swap-arrow:hover {
   transform: rotate(180deg);
+}
+
+/* New styles for token menu */
+.token-menu {
+  padding: 0.25rem;
+}
+
+.token-option {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  cursor: pointer;
+  background: #111;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.token-option:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
