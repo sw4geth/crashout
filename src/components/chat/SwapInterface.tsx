@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { ethers } from 'ethers';
 import "@/styles/swap.css";
 
 interface TokenWithLogo {
@@ -11,36 +12,35 @@ interface TokenWithLogo {
   name: string;
   decimals: number;
   logoURI?: string;
+  chainId: number;
 }
-
-const WETH: TokenWithLogo = {
-  address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-  symbol: 'WETH',
-  name: 'Wrapped Ether',
-  decimals: 18,
-  logoURI: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png',
-};
-
-const USDC: TokenWithLogo = {
-  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  symbol: 'USDC',
-  name: 'USD Coin',
-  decimals: 6,
-  logoURI: 'https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png',
-};
-
-const TOKEN_LIST: TokenWithLogo[] = [WETH, USDC];
 
 export default function SwapInterface() {
   const [inputAmount, setInputAmount] = useState('1.0');
   const [outputAmount, setOutputAmount] = useState('');
-  const [inputToken, setInputToken] = useState<TokenWithLogo>(WETH);
-  const [outputToken, setOutputToken] = useState<TokenWithLogo>(USDC);
+  const [inputToken, setInputToken] = useState<TokenWithLogo | null>(null);
+  const [outputToken, setOutputToken] = useState<TokenWithLogo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tokens, setTokens] = useState<TokenWithLogo[]>([]);
 
-  const getQuote = async (amount: string) => {
-    if (!amount || Number(amount) <= 0) {
+  useEffect(() => {
+    fetch('https://tokens.uniswap.org')
+      .then((res) => res.json())
+      .then((data) => {
+        const mainnetTokens = data.tokens.filter((token: TokenWithLogo) => token.chainId === 1);
+        setTokens(mainnetTokens);
+        setInputToken(mainnetTokens.find((t: TokenWithLogo) => t.symbol === 'WETH') || mainnetTokens[0]);
+        setOutputToken(mainnetTokens.find((t: TokenWithLogo) => t.symbol === 'USDC') || mainnetTokens[1]);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch token list:', err);
+        setError('Failed to load token list');
+      });
+  }, []);
+
+  const getQuote = async (amount: string, inputTok: TokenWithLogo, outputTok: TokenWithLogo) => {
+    if (!amount || Number(amount) <= 0 || !inputTok || !outputTok) {
       setOutputAmount('');
       setError(null);
       return;
@@ -50,7 +50,10 @@ export default function SwapInterface() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/getQuote?amountIn=${amount}`);
+      const rawAmountIn = ethers.utils.parseUnits(amount, inputTok.decimals).toString();
+      const response = await fetch(
+        `/api/getQuote?amountIn=${rawAmountIn}&inputToken=${inputTok.address}&outputToken=${outputTok.address}&inputDecimals=${inputTok.decimals}&outputDecimals=${outputTok.decimals}`
+      );
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `Server error: ${response.status}`);
@@ -68,18 +71,21 @@ export default function SwapInterface() {
   };
 
   useEffect(() => {
-    const debounce = setTimeout(() => {
-      getQuote(inputAmount);
-    }, 500);
-    return () => clearTimeout(debounce);
-  }, [inputAmount]);
+    if (inputToken && outputToken) {
+      const debounce = setTimeout(() => {
+        getQuote(inputAmount, inputToken, outputToken);
+      }, 500);
+      return () => clearTimeout(debounce);
+    }
+  }, [inputAmount, inputToken, outputToken]);
 
   const switchTokens = () => {
-    setInputToken(outputToken);
-    setOutputToken(inputToken);
-    setInputAmount(outputAmount || '1.0');
-    setOutputAmount('');
-    getQuote(outputAmount || '1.0'); // Fetch new quote after switching
+    if (inputToken && outputToken) {
+      setInputToken(outputToken);
+      setOutputToken(inputToken);
+      setInputAmount(outputAmount || '1.0');
+      setOutputAmount('');
+    }
   };
 
   return (
@@ -102,13 +108,19 @@ export default function SwapInterface() {
             transition={{ duration: 0.3 }}
           >
             <div className="token-select" onClick={() => console.log("Select input token")}>
-              <img
-                src={inputToken.logoURI || "https://via.placeholder.com/24"}
-                alt={inputToken.symbol}
-                className="token-icon"
-                onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
-              />
-              <span className="token-symbol">{inputToken.symbol}</span>
+              {inputToken ? (
+                <>
+                  <img
+                    src={inputToken.logoURI || "https://via.placeholder.com/24"}
+                    alt={inputToken.symbol}
+                    className="token-icon"
+                    onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                  />
+                  <span className="token-symbol">{inputToken.symbol}</span>
+                </>
+              ) : (
+                <span>Loading...</span>
+              )}
             </div>
 
             <input
@@ -126,13 +138,19 @@ export default function SwapInterface() {
             </div>
 
             <div className="token-select" onClick={() => console.log("Select output token")}>
-              <img
-                src={outputToken.logoURI || "https://via.placeholder.com/24"}
-                alt={outputToken.symbol}
-                className="token-icon"
-                onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
-              />
-              <span className="token-symbol">{outputToken.symbol}</span>
+              {outputToken ? (
+                <>
+                  <img
+                    src={outputToken.logoURI || "https://via.placeholder.com/24"}
+                    alt={outputToken.symbol}
+                    className="token-icon"
+                    onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/24")}
+                  />
+                  <span className="token-symbol">{outputToken.symbol}</span>
+                </>
+              ) : (
+                <span>Loading...</span>
+              )}
             </div>
 
             <input
