@@ -4,7 +4,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ethers } from 'ethers';
-import { useChainId } from 'wagmi';
+import { useChainId, useAccount, useBalance } from 'wagmi';
+import { useAppKitAccount } from '@reown/appkit/react';
 import { networks } from '@/config';
 import "@/styles/swap.css";
 
@@ -40,7 +41,25 @@ export default function SwapInterface() {
   const [isOutputTokenMenuOpen, setIsOutputTokenMenuOpen] = useState(false);
   const [inputSearch, setInputSearch] = useState('');
   const [outputSearch, setOutputSearch] = useState('');
+  const [swapping, setSwapping] = useState(false);
+  const [swapSuccess, setSwapSuccess] = useState(false);
   const chainId = useChainId();
+  
+  // Get wallet connection status and address
+  const { address, isConnected } = useAppKitAccount();
+  
+  // Get token balances
+  const { data: inputTokenBalance } = useBalance({
+    address: address as `0x${string}`,
+    token: inputToken?.address as `0x${string}`,
+    enabled: isConnected && !!inputToken && !!address,
+  });
+  
+  const { data: outputTokenBalance } = useBalance({
+    address: address as `0x${string}`,
+    token: outputToken?.address as `0x${string}`,
+    enabled: isConnected && !!outputToken && !!address,
+  });
 
   useEffect(() => {
     fetch('https://tokens.uniswap.org')
@@ -149,6 +168,41 @@ export default function SwapInterface() {
     setOutputSearch('');
   };
 
+  // Function to execute the swap
+  const executeSwap = async () => {
+    if (!isConnected) {
+      setError('Connect your wallet to swap');
+      return;
+    }
+    
+    if (!inputToken || !outputToken || !inputAmount || !outputAmount) {
+      setError('Please select tokens and enter an amount');
+      return;
+    }
+    
+    setSwapping(true);
+    setError(null);
+    
+    try {
+      // Simulate a successful swap for now
+      // In a real implementation, this would call the swap contract
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setSwapSuccess(true);
+      setTimeout(() => setSwapSuccess(false), 3000);
+    } catch (err) {
+      console.error('Swap error:', err);
+      setError(err.message || 'Failed to execute swap');
+    } finally {
+      setSwapping(false);
+    }
+  };
+  
+  // Format balance display
+  const formatBalance = (balance: any) => {
+    if (!balance) return '0';
+    return parseFloat(ethers.utils.formatUnits(balance.value, balance.decimals)).toFixed(4);
+  };
+
   return (
     <div className="relative w-[240px] h-[400px]">
       <video
@@ -183,6 +237,11 @@ export default function SwapInterface() {
                 <span>Loading...</span>
               )}
             </div>
+            {isConnected && inputToken && (
+              <div className="text-xs text-white/60 mt-1">
+                Balance: {formatBalance(inputTokenBalance)} {inputToken.symbol}
+              </div>
+            )}
             {isInputTokenMenuOpen && (
               <motion.div
                 className="token-menu"
@@ -257,6 +316,11 @@ export default function SwapInterface() {
                 <span>Loading...</span>
               )}
             </div>
+            {isConnected && outputToken && (
+              <div className="text-xs text-white/60 mt-1">
+                Balance: {formatBalance(outputTokenBalance)} {outputToken.symbol}
+              </div>
+            )}
             {isOutputTokenMenuOpen && (
               <motion.div
                 className="token-menu"
@@ -318,6 +382,21 @@ export default function SwapInterface() {
               >
                 {error}
               </motion.div>
+            )}
+            
+            {/* Swap button */}
+            <button
+              onClick={executeSwap}
+              disabled={!isConnected || swapping || !inputToken || !outputToken || !inputAmount || !outputAmount}
+              className="w-full mt-4 bg-black text-white border border-white/20 py-1 text-xs font-mono hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {swapping ? 'Swapping...' : swapSuccess ? 'Swap Successful!' : 'Swap'}
+            </button>
+            
+            {!isConnected && (
+              <div className="text-xs text-white/60 mt-2 text-center">
+                Connect wallet to swap
+              </div>
             )}
           </motion.div>
         </div>
