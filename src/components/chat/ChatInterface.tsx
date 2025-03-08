@@ -1,341 +1,339 @@
-"use client"
+"use client";
 
-import React, { useState, useRef, useEffect } from "react"
-import { motion } from "framer-motion"
-import { ethers } from "ethers"
-import ScrambleIn, { ScrambleInHandle } from "@/components/text/scramble-in"
-import SwapInterface from "./SwapInterface"
-import StoryProtocolMint from "./StoryProtocolMint"
-import WormholeBridge from "./WormholeBridge"
-import GeckoChart from "../chart/GeckoChart"
-import BlackWalletButton from "../wallet/BlackWalletButton"
-import { generateChatResponse } from "@/lib/openai"
+import React, { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { ethers } from "ethers";
+import ScrambleIn, { ScrambleInHandle } from "@/components/text/scramble-in";
+import SwapInterface from "./SwapInterface";
+import StoryMintProd from "./StoryMintProd";
+import WormholeBridge from "./WormholeBridge";
+import GeckoChart from "../chart/GeckoChart";
+import BlackWalletButton from "../wallet/BlackWalletButton";
+import { generateChatResponse } from "@/lib/openai";
 
 interface Message {
-  role: "user" | "assistant"
-  content: string
-  timestamp: number
+  role: "user" | "assistant";
+  content: string;
+  timestamp: number;
 }
 
 interface ActionItem {
-  id: string
-  type: 'videoMint' | 'swap' | 'bridge' | 'chart'
-  content: string
-  timestamp: number
-  data?: any // For type-specific data like video URL
+  id: string;
+  type: "videoMint" | "swap" | "bridge" | "chart";
+  content: string;
+  timestamp: number;
+  data?: any; // For type-specific data like video URL
 }
 
 interface TimelineItem {
-  id: string
-  type: 'message' | 'action'
-  data: Message | ActionItem
-  timestamp: number
+  id: string;
+  type: "message" | "action";
+  data: Message | ActionItem;
+  timestamp: number;
 }
 
 interface ChatInterfaceProps {
-  initialPrompt?: string
+  initialPrompt?: string;
 }
 
-// Initialize provider
 const provider = new ethers.providers.JsonRpcProvider(
   "https://eth-mainnet.g.alchemy.com/v2/SNEOR8G_USDK3K_Ak29fC0ZWu_E58-7W"
-)
+);
 
 const videos = [
   "/videos/output (7).mp4",
   "/videos/output (8).mp4",
   "/videos/output (9).mp4",
-  "/videos/output.mp4"
-]
+  "/videos/output.mp4",
+];
 
 export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
-  // Main timeline state for all interactions
-  const [timeline, setTimeline] = useState<TimelineItem[]>([])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [currentResponse, setCurrentResponse] = useState("")
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const scrambleRef = useRef<ScrambleInHandle>(null)
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentResponse, setCurrentResponse] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrambleRef = useRef<ScrambleInHandle>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    scrollToBottom()
-  }, [timeline, currentResponse])
+    scrollToBottom();
+  }, [timeline, currentResponse]);
 
   useEffect(() => {
     if (initialPrompt) {
-      handleSubmitWithContent(initialPrompt)
+      handleSubmitWithContent(initialPrompt);
     }
-  }, [initialPrompt])
+  }, [initialPrompt]);
 
-  // We now handle video selection directly in the handleSubmitWithContent function
-  // This ensures a new video is selected each time, even if the same action is triggered
+  const handleMintSuccess = (txHash: string, ipId: string) => {
+    const timestamp = Date.now();
+    const responseId = `msg_${timestamp}`;
+    setTimeline(prev => [
+      ...prev,
+      {
+        id: responseId,
+        type: "message",
+        data: {
+          role: "assistant",
+          content: `TRANSACTION HIGHLIGHT\nMinted on Story!\nTx: ${txHash}\nIP ID: ${ipId}`,
+          timestamp,
+        },
+        timestamp,
+      },
+    ]);
+  };
 
   const isSwapPrompt = (content: string) => {
-    const lowerContent = content.toLowerCase()
-    // Check for swap-related keywords
+    const lowerContent = content.toLowerCase();
     const hasSwapCommand =
       lowerContent.includes("swap") ||
       lowerContent.includes("trade") ||
       lowerContent.includes("exchange") ||
-      lowerContent.includes("convert")
-
-    // Check for token keywords
-    const hasTokens =
-      lowerContent.includes("mnt") ||
-      lowerContent.includes("usdc")
-
-    return hasSwapCommand && hasTokens
-  }
+      lowerContent.includes("convert");
+    const hasTokens = lowerContent.includes("mnt") || lowerContent.includes("usdc");
+    return hasSwapCommand && hasTokens;
+  };
 
   const isVideoMintPrompt = (content: string) => {
-    const lowerContent = content.toLowerCase()
-    return (
-      lowerContent.includes("mint") ||
-      lowerContent.includes("slop")
-    )
-  }
+    const lowerContent = content.toLowerCase();
+    return lowerContent.includes("mint") || lowerContent.includes("slop");
+  };
 
   const isBridgePrompt = (content: string) => {
-    const lowerContent = content.toLowerCase()
+    const lowerContent = content.toLowerCase();
     return (
       lowerContent.includes("bridge") &&
       lowerContent.includes("meth") &&
       lowerContent.includes("solana")
-    )
-  }
-  
+    );
+  };
+
   const isChartPrompt = (content: string) => {
-    const lowerContent = content.toLowerCase()
-    return lowerContent.includes("crashout")
-  }
+    const lowerContent = content.toLowerCase();
+    return lowerContent.includes("crashout");
+  };
 
   const handleSubmitWithContent = async (content: string) => {
-    if (!content.trim()) return
+    if (!content.trim()) return;
 
-    const timestamp = Date.now()
-    const messageId = `msg_${timestamp}`
-    
-    // Add user message to timeline
-    const userMessage: Message = { 
-      role: "user" as const, 
+    const timestamp = Date.now();
+    const messageId = `msg_${timestamp}`;
+
+    const userMessage: Message = {
+      role: "user" as const,
       content,
-      timestamp 
-    }
-    
-    setTimeline(prev => [...prev, {
-      id: messageId,
-      type: 'message',
-      data: userMessage,
-      timestamp
-    }])
-    
-    setInput("")
+      timestamp,
+    };
 
-    // Check for swap prompt
+    setTimeline(prev => [
+      ...prev,
+      {
+        id: messageId,
+        type: "message",
+        data: userMessage,
+        timestamp,
+      },
+    ]);
+
+    setInput("");
+
     if (isSwapPrompt(content)) {
-      const actionTimestamp = timestamp + 1
-      const actionId = `action_swap_${actionTimestamp}`
-      const responseTimestamp = timestamp + 2
-      const responseId = `msg_${responseTimestamp}`
-      
-      // Add swap action to timeline
+      const actionTimestamp = timestamp + 1;
+      const actionId = `action_swap_${actionTimestamp}`;
+      const responseTimestamp = timestamp + 2;
+      const responseId = `msg_${responseTimestamp}`;
+
       setTimeline(prev => [
         ...prev,
         {
           id: actionId,
-          type: 'action',
+          type: "action",
           data: {
             id: actionId,
-            type: 'swap',
+            type: "swap",
             content,
-            timestamp: actionTimestamp
+            timestamp: actionTimestamp,
           },
-          timestamp: actionTimestamp
+          timestamp: actionTimestamp,
         },
         {
           id: responseId,
-          type: 'message',
+          type: "message",
           data: {
             role: "assistant",
             content: "sell while you still can",
-            timestamp: responseTimestamp
+            timestamp: responseTimestamp,
           },
-          timestamp: responseTimestamp
-        }
-      ])
-      return
+          timestamp: responseTimestamp,
+        },
+      ]);
+      return;
     }
 
-    // Check for video mint prompt
     if (isVideoMintPrompt(content)) {
-      // Select a random video
-      const randomVideo = videos[Math.floor(Math.random() * videos.length)]
-      
-      const actionTimestamp = timestamp + 1
-      const actionId = `action_mint_${actionTimestamp}`
-      const responseTimestamp = timestamp + 2
-      const responseId = `msg_${responseTimestamp}`
-      
-      // Add video mint action to timeline
+      const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+      const actionTimestamp = timestamp + 1;
+      const actionId = `action_mint_${actionTimestamp}`;
+      const responseTimestamp = timestamp + 2;
+      const responseId = `msg_${responseTimestamp}`;
+
       setTimeline(prev => [
         ...prev,
         {
           id: actionId,
-          type: 'action',
+          type: "action",
           data: {
             id: actionId,
-            type: 'videoMint',
+            type: "videoMint",
             content,
             timestamp: actionTimestamp,
-            data: { video: randomVideo }
+            data: { video: randomVideo },
           },
-          timestamp: actionTimestamp
+          timestamp: actionTimestamp,
         },
         {
           id: responseId,
-          type: 'message',
+          type: "message",
           data: {
             role: "assistant",
             content: "here's your slop master",
-            timestamp: responseTimestamp
+            timestamp: responseTimestamp,
           },
-          timestamp: responseTimestamp
-        }
-      ])
-      return
+          timestamp: responseTimestamp,
+        },
+      ]);
+      return;
     }
 
-    // Check for bridge prompt
     if (isBridgePrompt(content)) {
-      const actionTimestamp = timestamp + 1
-      const actionId = `action_bridge_${actionTimestamp}`
-      const responseTimestamp = timestamp + 2
-      const responseId = `msg_${responseTimestamp}`
-      
-      // Add bridge action to timeline
+      const actionTimestamp = timestamp + 1;
+      const actionId = `action_bridge_${actionTimestamp}`;
+      const responseTimestamp = timestamp + 2;
+      const responseId = `msg_${responseTimestamp}`;
+
       setTimeline(prev => [
         ...prev,
         {
           id: actionId,
-          type: 'action',
+          type: "action",
           data: {
             id: actionId,
-            type: 'bridge',
+            type: "bridge",
             content,
-            timestamp: actionTimestamp
+            timestamp: actionTimestamp,
           },
-          timestamp: actionTimestamp
+          timestamp: actionTimestamp,
         },
         {
           id: responseId,
-          type: 'message',
+          type: "message",
           data: {
             role: "assistant",
             content: "finna bridge",
-            timestamp: responseTimestamp
+            timestamp: responseTimestamp,
           },
-          timestamp: responseTimestamp
-        }
-      ])
-      return
+          timestamp: responseTimestamp,
+        },
+      ]);
+      return;
     }
 
-    // Check for chart/crashout prompt
     if (isChartPrompt(content)) {
-      const actionTimestamp = timestamp + 1
-      const actionId = `action_chart_${actionTimestamp}`
-      const responseTimestamp = timestamp + 2
-      const responseId = `msg_${responseTimestamp}`
-      
-      // Add chart action to timeline
+      const actionTimestamp = timestamp + 1;
+      const actionId = `action_chart_${actionTimestamp}`;
+      const responseTimestamp = timestamp + 2;
+      const responseId = `msg_${responseTimestamp}`;
+
       setTimeline(prev => [
         ...prev,
         {
           id: actionId,
-          type: 'action',
+          type: "action",
           data: {
             id: actionId,
-            type: 'chart',
+            type: "chart",
             content,
-            timestamp: actionTimestamp
+            timestamp: actionTimestamp,
           },
-          timestamp: actionTimestamp
+          timestamp: actionTimestamp,
         },
         {
           id: responseId,
-          type: 'message',
+          type: "message",
           data: {
             role: "assistant",
             content: "time to crashout",
-            timestamp: responseTimestamp
+            timestamp: responseTimestamp,
           },
-          timestamp: responseTimestamp
-        }
-      ])
-      return
+          timestamp: responseTimestamp,
+        },
+      ]);
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setCurrentResponse("")
+      setIsLoading(true);
+      setCurrentResponse("");
 
-      const response = await generateChatResponse(content)
-      let fullResponse = ""
+      const response = await generateChatResponse(content);
+      let fullResponse = "";
 
       for await (const chunk of response) {
-        const content = chunk.choices[0]?.delta?.content || ""
-        fullResponse += content
-        setCurrentResponse((prev) => prev + content)
+        const content = chunk.choices[0]?.delta?.content || "";
+        fullResponse += content;
+        setCurrentResponse((prev) => prev + content);
       }
 
-      const responseTimestamp = Date.now()
-      const responseId = `msg_${responseTimestamp}`
-      
-      // Add assistant response to timeline
-      setTimeline(prev => [...prev, {
-        id: responseId,
-        type: 'message',
-        data: {
-          role: "assistant",
-          content: fullResponse,
-          timestamp: responseTimestamp
+      const responseTimestamp = Date.now();
+      const responseId = `msg_${responseTimestamp}`;
+
+      setTimeline(prev => [
+        ...prev,
+        {
+          id: responseId,
+          type: "message",
+          data: {
+            role: "assistant",
+            content: fullResponse,
+            timestamp: responseTimestamp,
+          },
+          timestamp: responseTimestamp,
         },
-        timestamp: responseTimestamp
-      }])
-      
-      setCurrentResponse("")
+      ]);
+
+      setCurrentResponse("");
     } catch (error) {
-      console.error("Error:", error)
-      // Fallback to dummy response if API fails
-      const dummyResponse = "This is a dummy response to your query."
-      
-      const responseTimestamp = Date.now()
-      const responseId = `msg_${responseTimestamp}`
-      
-      // Add fallback response to timeline
-      setTimeline(prev => [...prev, {
-        id: responseId,
-        type: 'message',
-        data: {
-          role: "assistant",
-          content: dummyResponse,
-          timestamp: responseTimestamp
+      console.error("Error:", error);
+      const dummyResponse = "This is a dummy response to your query.";
+      const responseTimestamp = Date.now();
+      const responseId = `msg_${responseTimestamp}`;
+
+      setTimeline(prev => [
+        ...prev,
+        {
+          id: responseId,
+          type: "message",
+          data: {
+            role: "assistant",
+            content: dummyResponse,
+            timestamp: responseTimestamp,
+          },
+          timestamp: responseTimestamp,
         },
-        timestamp: responseTimestamp
-      }])
+      ]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    handleSubmitWithContent(input)
-  }
+    e.preventDefault();
+    handleSubmitWithContent(input);
+  };
 
   return (
     <div className="h-[calc(100vh-16rem)] flex">
@@ -343,16 +341,16 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
       <div className="w-1/4 bg-black/50 p-4 space-y-2 border-r border-white/20">
         <div className="space-y-2">
           <button
-            onClick={() => handleSubmitWithContent("swap mnt to usdc")}
+            onClick={() => handleSubmitWithContent("swap weth to usdc")}
             className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
           >
-            swap mnt to usdc
+            swap weth to usdc
           </button>
           <button
             onClick={() => handleSubmitWithContent("mint me some slop")}
             className="w-full p-2 text-left text-white hover:bg-white/10 transition-colors"
           >
-            mint me some slop
+            mint me some goonslop
           </button>
           <button
             onClick={() => handleSubmitWithContent("bridge meth to solana")}
@@ -368,14 +366,13 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
           </button>
         </div>
       </div>
-      
+
       {/* Chat column */}
       <div className="w-3/4 flex flex-col">
         <div className="flex-1 overflow-y-auto min-h-0">
           <div className="space-y-4 p-4">
-            {/* Render timeline items in chronological order */}
             {timeline.map((item) => {
-              if (item.type === 'message') {
+              if (item.type === "message") {
                 const message = item.data as Message;
                 return (
                   <motion.div
@@ -386,11 +383,11 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                   >
                     <div
                       className={`max-w-[80%] p-3 break-words whitespace-pre-wrap overflow-hidden ${
-                        message.role === "user" 
-                          ? "bg-black/50 text-white" 
+                        message.role === "user"
+                          ? "bg-black/50 text-white"
                           : message.content.includes("TRANSACTION HIGHLIGHT")
-                            ? "highlight" 
-                            : "bg-white/10 text-white"
+                          ? "highlight"
+                          : "bg-white/10 text-white"
                       }`}
                     >
                       <span className={message.content.includes("TRANSACTION HIGHLIGHT") ? "highlight-text font-bold" : ""}>
@@ -399,12 +396,11 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                     </div>
                   </motion.div>
                 );
-              } else if (item.type === 'action') {
+              } else if (item.type === "action") {
                 const action = item.data as ActionItem;
-                
-                // Render different action types
-                if (action.type === 'videoMint') {
-                  const videoUrl = action.data?.video;
+
+                if (action.type === "videoMint") {
+                  const videoUrl = action.data?.video; // Extract video URL
                   return (
                     <React.Fragment key={item.id}>
                       <motion.div
@@ -412,35 +408,22 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex justify-start relative"
                       >
-                        <div className="max-w-[80%] p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
+                        <div style={{width: '40%'}} className="p-3 rounded-lg bg-white/10 text-white relative overflow-hidden">
                           <motion.div
                             initial={{ opacity: 1 }}
                             animate={{ opacity: 0 }}
-                            transition={{
-                              duration: 0.3,
-                              delay: 1.2
-                            }}
+                            transition={{ duration: 0.3, delay: 1.2 }}
                             className="absolute inset-0 flex items-center justify-center bg-black/20"
                           >
                             <div className="flex items-center gap-2">
-                              <motion.div 
+                              <motion.div
                                 animate={{ rotate: 360 }}
-                                transition={{
-                                  duration: 1,
-                                  repeat: Infinity,
-                                  ease: "linear"
-                                }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                                 className="w-4 h-4 border-2 border-white/30 border-t-white/90 rounded-full"
                               />
                               <motion.span
-                                animate={{
-                                  opacity: [1, 0.5, 1]
-                                }}
-                                transition={{
-                                  duration: 1.5,
-                                  repeat: Infinity,
-                                  ease: "easeInOut"
-                                }}
+                                animate={{ opacity: [1, 0.5, 1] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                                 className="font-mono text-sm text-white/90"
                               >
                                 Inferencing slop...
@@ -450,35 +433,23 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                           <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            transition={{
-                              duration: 0.4,
-                              delay: 1.2
-                            }}
+                            transition={{ duration: 0.4, delay: 1.2 }}
                           >
                             {videoUrl && (
-                              <motion.video 
-                                initial={{
-                                  filter: "opacity(0)"
-                                }}
+                              <motion.video
+                                initial={{ filter: "opacity(0)" }}
                                 animate={{
                                   filter: [
                                     "opacity(0)",
                                     "opacity(1) contrast(800%) brightness(150%)",
                                     "opacity(1) contrast(800%) brightness(150%)",
-                                    "opacity(1) contrast(100%) brightness(100%)"
-                                  ]
+                                    "opacity(1) contrast(100%) brightness(100%)",
+                                  ],
                                 }}
-                                transition={{
-                                  duration: 2.4,
-                                  times: [0, 0.2, 0.7, 1],
-                                  ease: "easeOut"
-                                }}
+                                transition={{ duration: 2.4, times: [0, 0.2, 0.7, 1], ease: "easeOut" }}
                                 src={videoUrl}
-                                className="max-w-full h-auto rounded transform"
-                                style={{
-                                  WebkitFilter: "url(#noise)",
-                                  filter: "url(#noise)"
-                                }}
+                                className="w-full h-auto rounded transform"
+                                style={{ WebkitFilter: "url(#noise)", filter: "url(#noise)" }}
                                 controls
                                 autoPlay
                                 loop
@@ -494,13 +465,17 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                         transition={{ delay: 1.2, duration: 0.3 }}
                         className="flex justify-start"
                       >
-                        <div className="max-w-[80%]">
-                          <StoryProtocolMint content={action.content} />
+                        <div style={{width: '40%'}}>
+                          <StoryMintProd
+                            content={action.content}
+                            videoUrl={videoUrl} // Pass the video URL here
+                            onMintSuccess={handleMintSuccess} // Log tx in chat
+                          />
                         </div>
                       </motion.div>
                     </React.Fragment>
                   );
-                } else if (action.type === 'swap') {
+                } else if (action.type === "swap") {
                   return (
                     <motion.div
                       key={item.id}
@@ -513,7 +488,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                       </div>
                     </motion.div>
                   );
-                } else if (action.type === 'bridge') {
+                } else if (action.type === "bridge") {
                   return (
                     <motion.div
                       key={item.id}
@@ -526,7 +501,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                       </div>
                     </motion.div>
                   );
-                } else if (action.type === 'chart') {
+                } else if (action.type === "chart") {
                   return (
                     <motion.div
                       key={item.id}
@@ -543,8 +518,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               }
               return null;
             })}
-            
-            {/* Loading indicator */}
+
             {isLoading && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -559,8 +533,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 </div>
               </motion.div>
             )}
-            
-            {/* Current response being typed */}
+
             {currentResponse && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -579,13 +552,11 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 </div>
               </motion.div>
             )}
-            
-            {/* Reference div for scrolling to bottom */}
+
             <div ref={messagesEndRef} />
-            
-            {/* SVG Filter for video effects */}
-            {timeline.some(item => item.type === 'action' && (item.data as ActionItem).type === 'videoMint') && (
-              <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+
+            {timeline.some(item => item.type === "action" && (item.data as ActionItem).type === "videoMint") && (
+              <svg style={{ position: "absolute", width: 0, height: 0 }}>
                 <defs>
                   <filter id="noise">
                     <feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="4" stitchTiles="stitch" />
@@ -599,13 +570,9 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                 </defs>
               </svg>
             )}
-            
-
-            
-
           </div>
         </div>
-        
+
         <div className="p-4 border-t border-white/20 bg-black/50">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
@@ -629,5 +596,5 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

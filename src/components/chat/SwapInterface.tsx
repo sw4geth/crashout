@@ -4,8 +4,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ethers } from 'ethers';
-import { useChainId, useAccount, useBalance } from 'wagmi';
+import { useChainId, useAccount, useBalance, useWalletClient } from 'wagmi';
 import { useAppKitAccount } from '@reown/appkit/react';
+import { createWalletClient, custom, getAddress } from 'viem';
 import { networks } from '@/config';
 import "@/styles/swap.css";
 
@@ -47,6 +48,9 @@ export default function SwapInterface() {
   
   // Get wallet connection status and address
   const { address, isConnected } = useAppKitAccount();
+  
+  // Get wallet client from wagmi v2
+  const { data: walletClient } = useWalletClient();
   
   // Get token balances
   const { data: inputTokenBalance } = useBalance({
@@ -184,9 +188,216 @@ export default function SwapInterface() {
     setError(null);
     
     try {
-      // Simulate a successful swap for now
-      // In a real implementation, this would call the swap contract
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Check if wallet client is available
+      if (!walletClient) {
+        throw new Error('Wallet client not available. Please connect your wallet.');
+      }
+
+      // Convert input amount to raw units (using viem parseUnits)
+      const { parseUnits, formatUnits } = await import('viem');
+      const rawAmountIn = parseUnits(inputAmount, inputToken.decimals);
+      
+      // Call the API to get the swap route
+      const response = await fetch(
+        `/api/getQuote?amountIn=${rawAmountIn.toString()}&inputToken=${inputToken.address}&outputToken=${outputToken.address}&inputDecimals=${inputToken.decimals}&outputDecimals=${outputToken.decimals}`
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
+      
+      const quoteData = await response.json();
+      
+      // Uniswap V2 Router address
+      const routerAddress = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
+      
+      // Check if we need to approve the token first (if not ETH)
+      if (inputToken.address.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' && 
+          inputToken.address.toLowerCase() !== '0x0000000000000000000000000000000000000000') {
+        
+        // ERC20 ABI for allowance and approve functions
+        const erc20Abi = [
+          {
+            "inputs": [
+              { "name": "owner", "type": "address" },
+              { "name": "spender", "type": "address" }
+            ],
+            "name": "allowance",
+            "outputs": [{ "name": "", "type": "uint256" }],
+            "stateMutability": "view",
+            "type": "function"
+          },
+          {
+            "inputs": [
+              { "name": "spender", "type": "address" },
+              { "name": "amount", "type": "uint256" }
+            ],
+            "name": "approve",
+            "outputs": [{ "name": "", "type": "bool" }],
+            "stateMutability": "nonpayable",
+            "type": "function"
+          }
+        ];
+        
+        // Import required viem functions
+        const { createPublicClient, http, createWalletClient } = await import('viem');
+        const { mainnet } = await import('viem/chains');
+        
+        // Create public client for read operations
+        const publicClient = createPublicClient({
+          chain: mainnet,
+          transport: http()
+        });
+        
+        // Check allowance
+        const currentAllowance = await publicClient.readContract({
+          address: inputToken.address,
+          abi: erc20Abi,
+          functionName: 'allowance',
+          args: [address, routerAddress]
+        });
+        
+        if (currentAllowance < rawAmountIn) {
+          console.log('Approving token...');
+          
+          // Need to approve - prepare the transaction
+          const { maxUint256 } = await import('viem');
+          
+          // Send the approval transaction
+          const hash = await walletClient.writeContract({
+            address: inputToken.address,
+            abi: erc20Abi,
+            functionName: 'approve',
+            args: [routerAddress, maxUint256]
+          });
+          
+          console.log('Approval transaction sent:', hash);
+          
+          // Wait for transaction confirmation
+          const receipt = await publicClient.waitForTransactionReceipt({ hash });
+          console.log('Token approved', receipt);
+        }
+      }
+      
+      // Uniswap V2 Router ABI for swap functions
+      const routerAbi = [
+        {
+          "inputs": [
+            { "name": "amountIn", "type": "uint256" },
+            { "name": "amountOutMin", "type": "uint256" },
+            { "name": "path", "type": "address[]" },
+            { "name": "to", "type": "address" },
+            { "name": "deadline", "type": "uint256" }
+          ],
+          "name": "swapExactTokensForTokens",
+          "outputs": [{ "name": "amounts", "type": "uint256[]" }],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            { "name": "amountOutMin", "type": "uint256" },
+            { "name": "path", "type": "address[]" },
+            { "name": "to", "type": "address" },
+            { "name": "deadline", "type": "uint256" }
+          ],
+          "name": "swapExactETHForTokens",
+          "outputs": [{ "name": "amounts", "type": "uint256[]" }],
+          "stateMutability": "payable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            { "name": "amountIn", "type": "uint256" },
+            { "name": "amountOutMin", "type": "uint256" },
+            { "name": "path", "type": "address[]" },
+            { "name": "to", "type": "address" },
+            { "name": "deadline", "type": "uint256" }
+          ],
+          "name": "swapExactTokensForETH",
+          "outputs": [{ "name": "amounts", "type": "uint256[]" }],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        }
+      ];
+      
+      // Calculate minimum amount out with 0.5% slippage
+      const outputAmountRaw = parseUnits(outputAmount, outputToken.decimals);
+      const amountOutMin = outputAmountRaw * 995n / 1000n;
+      
+      // Set deadline to 20 minutes from now
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
+      
+      // Import required viem functions if not already imported
+      const { createPublicClient, http } = await import('viem');
+      const { mainnet } = await import('viem/chains');
+      
+      // Create public client for transaction receipt
+      const publicClient = createPublicClient({
+        chain: mainnet,
+        transport: http()
+      });
+      
+      let hash;
+      
+      // Execute the swap based on token types
+      if (inputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' || 
+          inputToken.address.toLowerCase() === '0x0000000000000000000000000000000000000000') {
+        // ETH -> Token
+        const zeroAddress = '0x0000000000000000000000000000000000000000';
+        
+        hash = await walletClient.writeContract({
+          address: routerAddress,
+          abi: routerAbi,
+          functionName: 'swapExactETHForTokens',
+          args: [
+            amountOutMin,
+            [zeroAddress, outputToken.address],
+            address,
+            deadline
+          ],
+          value: rawAmountIn
+        });
+      } else if (outputToken.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' || 
+                 outputToken.address.toLowerCase() === '0x0000000000000000000000000000000000000000') {
+        // Token -> ETH
+        const zeroAddress = '0x0000000000000000000000000000000000000000';
+        
+        hash = await walletClient.writeContract({
+          address: routerAddress,
+          abi: routerAbi,
+          functionName: 'swapExactTokensForETH',
+          args: [
+            rawAmountIn,
+            amountOutMin,
+            [inputToken.address, zeroAddress],
+            address,
+            deadline
+          ]
+        });
+      } else {
+        // Token -> Token
+        hash = await walletClient.writeContract({
+          address: routerAddress,
+          abi: routerAbi,
+          functionName: 'swapExactTokensForTokens',
+          args: [
+            rawAmountIn,
+            amountOutMin,
+            [inputToken.address, outputToken.address],
+            address,
+            deadline
+          ]
+        });
+      }
+      
+      console.log('Swap transaction sent:', hash);
+      
+      // Wait for transaction confirmation
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      console.log('Transaction confirmed:', receipt);
+      
       setSwapSuccess(true);
       setTimeout(() => setSwapSuccess(false), 3000);
     } catch (err) {
