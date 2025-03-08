@@ -4,6 +4,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ethers } from 'ethers';
+import { useChainId } from 'wagmi';
+import { networks } from '@/config';
 import "@/styles/swap.css";
 
 interface TokenWithLogo {
@@ -38,6 +40,7 @@ export default function SwapInterface() {
   const [isOutputTokenMenuOpen, setIsOutputTokenMenuOpen] = useState(false);
   const [inputSearch, setInputSearch] = useState('');
   const [outputSearch, setOutputSearch] = useState('');
+  const chainId = useChainId();
 
   useEffect(() => {
     fetch('https://tokens.uniswap.org')
@@ -79,6 +82,15 @@ export default function SwapInterface() {
       setError(null);
       return;
     }
+    
+    // Check if we're on Ethereum mainnet
+    if (chainId !== 1) {
+      const chainName = networks.find(n => n.id === chainId)?.name || 'Unknown';
+      setOutputAmount('');
+      setError(`Swaps only supported on Ethereum Mainnet (Current: ${chainName})`);
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -114,7 +126,7 @@ export default function SwapInterface() {
       }, 500);
       return () => clearTimeout(debounce);
     }
-  }, [inputAmount, inputToken, outputToken]);
+  }, [inputAmount, inputToken, outputToken, chainId]);
 
   const switchTokens = () => {
     if (inputToken && outputToken) {
