@@ -1,7 +1,7 @@
 // src/app/page.tsx
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import ScrambleHover from '@/components/text/scramble-hover';
 import ChatInterface from '@/components/chat/ChatInterface';
@@ -9,33 +9,16 @@ import GlitchText from '@/components/text/glitch-text';
 import VariableFontCursorProximity from '@/components/text/variable-font-cursor-proximity';
 import PixelTrail from '@/components/background/pixel-trail';
 import HeroSection from '@/components/HeroSection';
-import { useAccount, useBalance, useChainId } from 'wagmi';
-import { formatEther, formatUnits } from 'viem';
-import { networks } from '@/config';
+
+
+
 
 export default function Home() {
   const [selectedPrompt, setSelectedPrompt] = useState<string | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainUIRef = useRef<HTMLDivElement>(null);
 
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const { data: balanceData, isLoading: balanceLoading } = useBalance({
-    address: address as `0x${string}`,
-    chainId, // Dynamic chainId
-  });
-
-  useEffect(() => {
-    const currentChain = networks.find(n => n.id === chainId);
-    console.log('Current Chain:', chainId, currentChain?.name || 'Unknown');
-  }, [chainId]);
-
-  const isSolanaChain = [501, 502, 503].includes(chainId); // Solana mainnet, testnet, devnet
-  const balanceFormatted = balanceData
-    ? isSolanaChain
-      ? `${formatUnits(balanceData.value, 9)} SOL` // Solana uses 9 decimals
-      : `${formatEther(balanceData.value)} ETH` // EVM uses 18 decimals
-    : '0';
+  // No hooks needed
 
   const headerTexts = ['HYPERREAL', 'CRASHOUT', 'QUANTUM', 'TRANSCENDENT'];
 
@@ -107,20 +90,9 @@ export default function Home() {
                 </motion.div>
               ))}
             </motion.div>
-            <div className="flex-1">
+            <div className="flex-1 relative">
               <ChatInterface initialPrompt={selectedPrompt} />
-              <div className="mt-8">
-                <w3m-button label={isConnected ? 'Connected' : 'Connect Wallet'} />
-                {isConnected && balanceData && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-white text-xs mt-2 font-jetbrainsMono"
-                  >
-                    Balance: {balanceLoading ? 'Loading...' : balanceFormatted}
-                  </motion.div>
-                )}
-              </div>
+
             </div>
           </div>
           <motion.div

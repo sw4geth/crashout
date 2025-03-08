@@ -8,6 +8,7 @@ import SwapInterface from "./SwapInterface"
 import StoryProtocolMint from "./StoryProtocolMint"
 import WormholeBridge from "./WormholeBridge"
 import GeckoChart from "../chart/GeckoChart"
+import BlackWalletButton from "../wallet/BlackWalletButton"
 import { generateChatResponse } from "@/lib/openai"
 
 interface Message {
@@ -622,6 +623,9 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
               Send
             </button>
           </form>
+          <div className="mt-4">
+            <BlackWalletButton />
+          </div>
         </div>
       </div>
     </div>
