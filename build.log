@@ -1,0 +1,32 @@
+
+> crashout-next@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.7
+   - Environments: .env
+
+   Creating an optimized production build ...
+(node:12347) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Failed to compile.
+
+./src/components/swap/SwapWidget.tsx
+Module not found: Can't resolve 'react-icons/fi'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/swap/page.tsx
+
+./src/connectors/walletConnect.ts
+Module not found: Can't resolve '@web3-react/walletconnect'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/connectors/index.ts
+./src/components/swap/SwapWidget.tsx
+./src/app/swap/page.tsx
+
+
+> Build failed because of webpack errors

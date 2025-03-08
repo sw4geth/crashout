@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { ethers } from "ethers"
 import ScrambleIn, { ScrambleInHandle } from "@/components/text/scramble-in"
-import DummyUniswapSwap from "./DummyUniswapSwap"
+import SwapInterface from "./SwapInterface"
 import StoryProtocolMint from "./StoryProtocolMint"
 import WormholeBridge from "./WormholeBridge"
 import GeckoChart from "../chart/GeckoChart"
@@ -508,7 +508,7 @@ export default function ChatInterface({ initialPrompt }: ChatInterfaceProps) {
                       className="flex justify-start"
                     >
                       <div className="max-w-[80%]">
-                        <DummyUniswapSwap />
+                        <SwapInterface provider={provider} />
                       </div>
                     </motion.div>
                   );
