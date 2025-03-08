@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-![Project Screenshot](https://github.com/sw4geth/crashout/blob/main/public/Screenshot%202025-02-28%20at%204.48.51%E2%80%AFPM.png?raw=true)
+![Project Screenshot](https://raw.githubusercontent.com/sw4geth/crashout/refs/heads/main/public/Screenshot.png)
 
 ## Active Development Branches
 
