@@ -1,5 +1,4 @@
-This is a Next.js project bootstrapped with create-next-app.
-
+## DEMO
 live demo:
 https://crashout-three.vercel.app/
 
