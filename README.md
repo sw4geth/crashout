@@ -1,5 +1,8 @@
 This is a Next.js project bootstrapped with create-next-app.
 
+live demo:
+https://crashout-three.vercel.app/
+
 # CRASHOUTTERMINAL
 Crashout Terminal is a hyper-personalized ChatGPT wrapper that interacts with on-chain protocols, bypassing traditional intent-matching and validation layers (key problems in AI agent execution) to serve familiar UI components directly in chat. It doesn't ask for permission—it just does.
 
